@@ -372,6 +372,7 @@ def summarize_d_error(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
 
 def save_condition_figure(subject_condition: pd.DataFrame, labels: str) -> None:
     label_map = LANG[labels]
+    GROUP_FIG_DIR.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(7.0, 4.5))
     sns.barplot(
         data=subject_condition,
@@ -404,7 +405,60 @@ def save_condition_figure(subject_condition: pd.DataFrame, labels: str) -> None:
     ax.set_xticks(range(len(CONDITION_ORDER)), labels=label_map["condition_ticklabels"])
     ax.set_title(label_map["condition_title"])
     plt.tight_layout()
-    save_figure(fig, OUTPUT_DIR, f"d_error_condition_{labels}")
+    save_figure(fig, GROUP_FIG_DIR, f"d_error_condition_{labels}")
+
+
+def save_subject_condition_figure(trial_df: pd.DataFrame, subject_condition: pd.DataFrame, sub_no: int, labels: str) -> None:
+    label_map = LANG[labels]
+    subject_trials = trial_df.loc[trial_df["SubNo"] == sub_no].copy()
+    subject_means = subject_condition.loc[subject_condition["SubNo"] == sub_no].copy()
+    if subject_trials.empty or subject_means.empty:
+        return
+
+    fig, ax = plt.subplots(figsize=(7.0, 4.5))
+    sns.barplot(
+        data=subject_means,
+        x="condition",
+        y="d_error_0to10",
+        order=CONDITION_ORDER,
+        estimator="mean",
+        errorbar=None,
+        hue="condition",
+        palette={condition: CONDITION_PALETTE[condition] for condition in CONDITION_ORDER},
+        legend=False,
+        edgecolor="0.25",
+        linewidth=1.0,
+        ax=ax,
+    )
+    sns.stripplot(
+        data=subject_trials,
+        x="condition",
+        y="d_error_0to10",
+        order=CONDITION_ORDER,
+        hue="condition",
+        palette={condition: CONDITION_PALETTE[condition] for condition in CONDITION_ORDER},
+        dodge=False,
+        size=4.5,
+        alpha=0.75,
+        edgecolor="#1F2933",
+        linewidth=0.35,
+        legend=False,
+        ax=ax,
+    )
+    ax.axhline(0.0, color="#111827", linewidth=0.9, linestyle="--", alpha=0.7)
+    ax.set_xlabel(label_map["condition_xlabel"])
+    ax.set_ylabel(label_map["condition_ylabel"])
+    ax.set_xticks(range(len(CONDITION_ORDER)), labels=label_map["condition_ticklabels"])
+    ax.set_title(f"{label_map['subject_prefix']} {sub_no:02d} · {label_map['condition_title']}")
+    plt.tight_layout()
+    save_figure(fig, SUBJECT_FIG_DIR, f"sub-{sub_no:02d}_d_error_condition_{labels}")
+
+
+def save_subject_condition_figures(trial_df: pd.DataFrame, subject_condition: pd.DataFrame) -> None:
+    SUBJECT_FIG_DIR.mkdir(parents=True, exist_ok=True)
+    for sub_no in sorted(subject_condition["SubNo"].unique()):
+        for labels in ["zh", "en"]:
+            save_subject_condition_figure(trial_df, subject_condition, int(sub_no), labels)
 
 
 def build_varignon_matches(df: pd.DataFrame) -> pd.DataFrame:
@@ -1009,6 +1063,7 @@ def main() -> None:
     )
     for labels in ["zh", "en"]:
         save_condition_figure(d_error_outputs["subject_condition"], labels)
+    save_subject_condition_figures(trial_df, d_error_outputs["subject_condition"])
     if not match_df.empty and not subject_centers.empty:
         save_varignon_figures(match_df, subject_centers)
     write_report(

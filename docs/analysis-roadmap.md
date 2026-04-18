@@ -72,6 +72,7 @@
 - 统计解释限制见 `docs/pdtask-main-effect.md`。
 
 #### Per-Subject Outputs
+- 每个被试另绘 1 张 `d_error` 条件图：横轴为重编码后的 `same` / `near` / `far` / `unknown`，纵轴为统一到 0–10 空间后的 `d_error`；图中应同时保留该被试的 trial-level 散点和条件均值。
 - 每个被试绘制 3 张图，对应 `AB`、`AC`、`BC` 三组村庄关系。
 - 每张图需要：
   - 在 0–10 空间画出六张面孔的真实点位；
