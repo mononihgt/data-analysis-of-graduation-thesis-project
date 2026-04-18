@@ -21,7 +21,7 @@ import seaborn as sns
 
 DATA_DIR = ROOT / "data"
 RESULTS_DIR = ROOT / "results"
-EXCLUDED_SUBNOS = {1, 15, 17}
+EXCLUDED_SUBNOS = {1, 7}
 
 FACE_TRUE_400 = {
     1: (97.0, 192.0),

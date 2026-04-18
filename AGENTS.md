@@ -58,4 +58,3 @@ Scoped `AGENTS.md` files in subdirectories override this file for their own tree
 - `docs/face-ground-truth.md`: canonical face coordinates and how to use them.
 - `docs/pdtask-main-effect.md`: PD nested-design inference constraint.
 - `docs/analysis-roadmap.md`: pending analysis and figure requirements by task.
-- `docs/data-exclusion.md`: current exclusion reference and maintenance rules.

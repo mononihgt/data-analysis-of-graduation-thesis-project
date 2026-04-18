@@ -62,5 +62,4 @@ Each script writes outputs to the matching `results/procN_.../` directory.
 - `docs/face-ground-truth.md`: canonical face coordinates and coordinate usage rules.
 - `docs/pdtask-main-effect.md`: PD nested-design interpretation constraint.
 - `docs/analysis-roadmap.md`: task-by-task pending analysis and figure requirements.
-- `docs/data-exclusion.md`: current exclusion reference.
 - `data/README.md`: raw data folder map.

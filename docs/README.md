@@ -12,7 +12,6 @@
 - “Which face coordinates count as ground truth?” -> `face-ground-truth.md`
 - “Why can’t PD report separate main effects?” -> `pdtask-main-effect.md`
 - “What analyses and figures are still planned?” -> `analysis-roadmap.md`
-- “Which participants are excluded?” -> `data-exclusion.md`
 
 ## Critical Rules To Keep In Mind
 - Use shared participant filters from `scripts/analysis_common.py`.

@@ -12,5 +12,4 @@ This directory contains raw task datasets and lightweight metadata about those d
 
 ## Canonical References
 - `data/README.md`: local folder map only.
-- `docs/data-exclusion.md`: current exclusion reference.
 - `scripts/analysis_common.py`: canonical implementation of exclusion and inclusion filters.
