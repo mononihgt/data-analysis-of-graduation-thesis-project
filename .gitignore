@@ -6,10 +6,20 @@ dist/
 wheels/
 *.egg-info
 share/
+.cache/
+.DS_Store
 
 # Virtual environments
-.venv
+.venv/
 
 # Data files
-data/
+data/**
+!data/
+!data/AGENTS.md
+!data/README.md
 analysised_data/
+code_mpx/
+
+# Result files
+results/**
+!results/

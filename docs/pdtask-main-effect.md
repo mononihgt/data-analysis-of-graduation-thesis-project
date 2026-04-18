@@ -1,5 +1,4 @@
-
-# Experimental Design and Analysis Notes
+# PD Task Design and Analysis Notes
 
 ## 1. Experimental Structure
 
@@ -74,37 +73,47 @@ Implications:
 
 ---
 
-## 4. Role of Mixed Models
+## 4. Trial-Level and Subject-Level Analyses
 
-### Model Form
+### Model Forms
+
+For raw trial-level data, use a mixed model with subject random effects:
 
 ```
-
 Y ~ A + B(A) + (1 | Subject)
-
 ```
 
 or
 
 ```
-
 Y ~ Condition + (1 | Subject)
-
 ```
 
-### What Mixed Models Can Do
+When stable, include random condition slopes:
+
+```
+Y ~ Condition + (1 + Condition | Subject)
+```
+
+For subject-level data, first aggregate to subject cell means and use repeated-measures ANOVA or paired planned contrasts:
+
+```
+subject_mean(Y) ~ Condition + Error(Subject / Condition)
+```
+
+### What These Models Can Do
 
 - Handle:
   - Unbalanced data
   - Nested structure
-  - Random effects (e.g., subjects)
+  - Subject-level dependence
 - Provide:
   - Overall A comparison (with confounding)
   - Clean comparisons within A2 (B2 vs B3 vs B4)
 
 ### What They Cannot Do
 
-> Mixed models **cannot recover independent A and B effects**
+> Mixed models and repeated-measures analyses **cannot recover independent A and B effects**
 
 Reason:
 - Missing combinations are structural, not random
@@ -119,9 +128,13 @@ Reason:
 #### (1) Overall A Effect
 
 ```
-
 Y ~ A + (1 | Subject)
+```
 
+or, at subject level:
+
+```
+RM-ANOVA / paired t-test on subject_mean(Y)
 ```
 
 Interpretation:
@@ -131,9 +144,13 @@ Interpretation:
 #### (2) Distance Effect Within A2
 
 ```
-
 Y ~ Distance (B2/B3/B4) + (1 | Subject)
+```
 
+or, at subject level:
+
+```
+RM-ANOVA / paired t-tests on subject_mean(Y)
 ```
 
 Interpretation:
@@ -147,22 +164,30 @@ Interpretation:
 Define:
 
 ```
-
 Condition:
-
-* C1 = A1-B1
-* C2 = A2-B2
-* C3 = A2-B3
-* C4 = A2-B4
-
+Condition:
+- C1 = same
+- C2 = near
+- C3 = far
+- C4 = unknown
 ```
 
 Model:
 
 ```
-
 Y ~ Condition + (1 | Subject)
+```
 
+Prefer the random-slope form when it fits stably:
+
+```
+Y ~ Condition + (1 + Condition | Subject)
+```
+
+At subject level:
+
+```
+RM-ANOVA / paired planned contrasts on subject_mean(Y)
 ```
 
 Advantages:
@@ -190,8 +215,6 @@ Avoid:
 
 ---
 
-
-
 ## 7. Design Limitation and Resolution
 
 ### Core Limitation
@@ -217,12 +240,11 @@ Adopt a fully crossed design:
 - Key issue:
   > **A and B are structurally confounded**
 
-- Mixed models:
-  > Improve estimation but do not resolve confounding
+- Subject controls:
+  > Improve repeated-measures estimation but do not resolve confounding
 
 - Best practice:
   > Treat conditions as a single factor or analyze within valid subsets
 
 - Critical principle:
   > **Statistical methods cannot compensate for missing experimental structure**
-
