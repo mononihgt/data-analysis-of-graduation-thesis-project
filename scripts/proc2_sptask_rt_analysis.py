@@ -23,6 +23,7 @@ from analysis_common import (
     infer_date_from_path,
     infer_subno_from_path,
     read_table_file,
+    reset_proc_output_dir,
     save_figure,
 )
 
@@ -280,7 +281,8 @@ def label_text(labels: str) -> dict[str, str]:
             "subject_title": "Proc2 / SP任务被试{subject}反应时轨迹",
             "subject_subtitle": "数据文件：{source}；日期：{date}；试次数：{n_trials}",
             "group_title": "Proc2 / SP任务所有被试反应时轨迹",
-            "group_subtitle": "每条折线代表一名被试；后续试次的纳入被试数可能减少。",
+            "group_subtitle": "浅灰线为单名被试；蓝线为跨被试均值，阴影为 ±1 SEM。",
+            "mean_rt": "跨被试均值",
         }
     return {
         "trial": "Trial index",
@@ -288,7 +290,8 @@ def label_text(labels: str) -> dict[str, str]:
         "subject_title": "Proc2 / SP task RT trajectory for {subject}",
         "subject_subtitle": "Source: {source}; date: {date}; trials: {n_trials}",
         "group_title": "Proc2 / SP task RT trajectories across subjects",
-        "group_subtitle": "Each line represents one subject; later trial positions may include fewer subjects.",
+        "group_subtitle": "Light gray lines show subjects; the blue line shows the across-subject mean with ±1 SEM.",
+        "mean_rt": "Across-subject mean",
     }
 
 
@@ -312,63 +315,83 @@ def plot_subject_rt(sub_df: pd.DataFrame, labels: str) -> None:
         sub_df["trial_index"],
         sub_df["rt"],
         color=TASK_PALETTE["blue"],
-        linewidth=2.0,
+        linewidth=1.8,
         marker="o",
-        markersize=4.2,
-        markerfacecolor=TASK_PALETTE["orange"],
-        markeredgewidth=0.6,
-        markeredgecolor="#1F2933",
+        markersize=4.0,
+        markerfacecolor="white",
+        markeredgewidth=0.9,
+        markeredgecolor=TASK_PALETTE["blue"],
         zorder=3,
     )
     add_block_guides(ax, sub_df)
-    ax.axhline(sub_df["rt"].mean(), color=TASK_PALETTE["gray"], linestyle=":", linewidth=1.2, zorder=1)
+    ax.axhline(sub_df["rt"].mean(), color=TASK_PALETTE["orange"], linestyle="--", linewidth=1.1, alpha=0.86, zorder=1)
     ax.set_xlabel(text["trial"])
     ax.set_ylabel(text["rt"])
-    ax.set_title(text["subject_title"].format(subject=subject_label), pad=12)
+    ax.set_title(text["subject_title"].format(subject=subject_label), pad=14, fontsize=15)
     ax.text(
-        0.01,
+        0.5,
         1.01,
         text["subject_subtitle"].format(source=source_file, date=session_date, n_trials=n_trials),
         transform=ax.transAxes,
-        ha="left",
+        ha="center",
         va="bottom",
-        fontsize=9,
+        fontsize=8.5,
         color="#4B5563",
     )
     ax.set_xlim(1, max(int(sub_df["trial_index"].max()), 1))
+    ax.grid(axis="x", visible=False)
     sns_despine(ax)
     save_figure(fig, OUTPUT_DIR, f"figures/{subject_label.lower()}_rt_{labels}")
 
 
-def plot_group_rt(trial_df: pd.DataFrame, labels: str) -> None:
+def plot_group_rt(trial_df: pd.DataFrame, trial_summary: pd.DataFrame, labels: str) -> None:
     text = label_text(labels)
     fig, ax = plt.subplots(figsize=(9.2, 5.4))
 
-    line_colors = [
-        TASK_PALETTE["blue"],
-        TASK_PALETTE["orange"],
-        TASK_PALETTE["green"],
-        TASK_PALETTE["red"],
-        TASK_PALETTE["purple"],
-        TASK_PALETTE["brown"],
-        TASK_PALETTE["cyan"],
-        TASK_PALETTE["gray"],
-    ]
-    for color_index, (_, sub_df) in enumerate(trial_df.groupby("SubNo", sort=True)):
+    for _, sub_df in trial_df.groupby("SubNo", sort=True):
         ax.plot(
             sub_df["trial_index"],
             sub_df["rt"],
-            color=line_colors[color_index % len(line_colors)],
-            linewidth=1.25,
-            alpha=0.46,
+            color="#9CA3AF",
+            linewidth=0.8,
+            alpha=0.24,
             zorder=1,
         )
 
+    summary = trial_summary.sort_values("trial_index").copy()
+    x_values = summary["trial_index"].to_numpy(dtype=float)
+    mean_values = summary["mean_rt"].to_numpy(dtype=float)
+    se_values = summary["se_rt"].fillna(0).to_numpy(dtype=float)
+    ax.fill_between(
+        x_values,
+        mean_values - se_values,
+        mean_values + se_values,
+        color=TASK_PALETTE["blue"],
+        alpha=0.18,
+        linewidth=0,
+        zorder=2,
+    )
+    ax.plot(
+        x_values,
+        mean_values,
+        color=TASK_PALETTE["blue"],
+        linewidth=2.4,
+        marker="o",
+        markersize=3.8,
+        markerfacecolor="white",
+        markeredgecolor=TASK_PALETTE["blue"],
+        markeredgewidth=0.9,
+        label=text["mean_rt"],
+        zorder=4,
+    )
+
     ax.set_xlabel(text["trial"])
     ax.set_ylabel(text["rt"])
-    ax.set_title(text["group_title"], pad=12)
-    ax.text(0.01, 1.01, text["group_subtitle"], transform=ax.transAxes, ha="left", va="bottom", fontsize=9, color="#4B5563")
+    ax.set_title(text["group_title"], pad=14, fontsize=18)
+    ax.text(0.5, 1.002, text["group_subtitle"], transform=ax.transAxes, ha="center", va="bottom", fontsize=8.5, color="#4B5563")
     ax.set_xlim(1, max(int(trial_df["trial_index"].max()), 1))
+    ax.grid(axis="x", visible=False)
+    ax.legend(loc="upper right", frameon=False, fontsize=9)
     sns_despine(ax)
     save_figure(fig, OUTPUT_DIR, f"figures/all_subjects_rt_{labels}")
 
@@ -460,6 +483,7 @@ def write_report(
 
 
 def main() -> None:
+    reset_proc_output_dir(OUTPUT_DIR)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     configure_plot_style("talk")
@@ -477,7 +501,7 @@ def main() -> None:
     for labels in ("zh", "en"):
         for _, sub_df in trial_df.groupby("SubNo", sort=True):
             plot_subject_rt(sub_df, labels)
-        plot_group_rt(trial_df, labels)
+        plot_group_rt(trial_df, trial_summary, labels)
     write_report(selected_files, trial_df, subject_summary, trial_summary, trend_summary, slope_test)
 
 

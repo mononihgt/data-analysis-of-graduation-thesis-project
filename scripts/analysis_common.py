@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import shutil
 from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
@@ -66,6 +67,45 @@ TASK_PALETTE = {
     "gray": "#6B7280",
     "cyan": "#72B7B2",
 }
+BAR_WIDTH = 0.62
+BAR_EDGE_COLOR = "#2F3437"
+BAR_LINEWIDTH = 0.9
+BAR_DOT_COLOR = "#4B5563"
+BAR_DOT_EDGE_COLOR = "#2F3437B2"
+BAR_DOT_ALPHA = 0.40
+BAR_DOT_SIZE = 34
+BAR_JITTER_WIDTH = 0.10
+BAR_ERROR_LINEWIDTH = 1.3
+BAR_ERROR_CAPSIZE = 3
+
+
+def bar_error_kw() -> dict[str, float | str]:
+    return {
+        "ecolor": BAR_EDGE_COLOR,
+        "elinewidth": BAR_ERROR_LINEWIDTH,
+        "capsize": BAR_ERROR_CAPSIZE,
+        "capthick": BAR_ERROR_LINEWIDTH,
+    }
+
+
+def bar_scatter_kw(**overrides) -> dict[str, float | str]:
+    style = {
+        "s": BAR_DOT_SIZE,
+        "color": BAR_DOT_COLOR,
+        "edgecolor": BAR_DOT_EDGE_COLOR,
+        "linewidth": 0.35,
+        "alpha": BAR_DOT_ALPHA,
+    }
+    style.update(overrides)
+    return style
+
+
+def jittered_x(center: float, count: int, rng: np.random.Generator, width: float = BAR_JITTER_WIDTH) -> np.ndarray:
+    if count <= 0:
+        return np.array([], dtype=float)
+    if count == 1:
+        return np.array([center], dtype=float)
+    return np.full(count, center, dtype=float) + rng.uniform(-width, width, size=count)
 FACE_PALETTE = {
     1: "#4C78A8",
     2: "#72B7B2",
@@ -80,6 +120,31 @@ CONDITION_PALETTE = {
     "far": "#E45756",
     "unknown": "#F58518",
 }
+
+
+def reset_proc_output_dir(output_dir: Path) -> Path:
+    """Remove previous generated outputs for a proc1-proc6 analysis directory."""
+    resolved_output_dir = output_dir.resolve()
+    resolved_results_dir = RESULTS_DIR.resolve()
+
+    if resolved_output_dir.parent != resolved_results_dir:
+        raise ValueError(f"Refusing to reset non-results analysis directory: {output_dir}")
+
+    if re.fullmatch(r"proc[1-6]_[A-Za-z0-9_]+", resolved_output_dir.name) is None:
+        raise ValueError(f"Refusing to reset non-proc1-proc6 output directory: {output_dir}")
+
+    if resolved_output_dir.exists() and not resolved_output_dir.is_dir():
+        raise NotADirectoryError(f"Output path is not a directory: {output_dir}")
+
+    if resolved_output_dir.exists():
+        for child in resolved_output_dir.iterdir():
+            if child.is_symlink() or child.is_file():
+                child.unlink()
+            elif child.is_dir():
+                shutil.rmtree(child)
+
+    resolved_output_dir.mkdir(parents=True, exist_ok=True)
+    return resolved_output_dir
 
 
 def configure_plot_style(context: str = "paper") -> None:

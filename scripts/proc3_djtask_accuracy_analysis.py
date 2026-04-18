@@ -3,16 +3,23 @@ from __future__ import annotations
 from datetime import datetime
 
 from analysis_common import (
+    BAR_EDGE_COLOR,
+    BAR_LINEWIDTH,
+    BAR_WIDTH,
     DATA_DIR,
     RESULTS_DIR,
     TASK_PALETTE,
+    bar_error_kw,
+    bar_scatter_kw,
     coerce_numeric,
     completed_all_task_subject_ids,
     configure_plot_style,
     filter_completed_subjects,
     filter_excluded_subjects,
+    jittered_x,
     load_task_tables,
     paired_test_report,
+    reset_proc_output_dir,
     save_figure,
 )
 import matplotlib.pyplot as plt
@@ -275,9 +282,9 @@ def apply_plot_fonts(*, language: str) -> None:
 
 
 def annotate_paired_result(ax: plt.Axes, *, x1: float, x2: float, y: float, text: str) -> None:
-    height = 0.03
-    ax.plot([x1, x1, x2, x2], [y, y + height, y + height, y], color="#1F2933", linewidth=1.0)
-    ax.text((x1 + x2) / 2, y + height + 0.01, text, ha="center", va="bottom", fontsize=10)
+    height = 0.025
+    ax.plot([x1, x1, x2, x2], [y, y + height, y + height, y], color=BAR_EDGE_COLOR, linewidth=0.9)
+    ax.text((x1 + x2) / 2, y + height + 0.008, text, ha="center", va="bottom", fontsize=10)
 
 
 def plot_group_accuracy(
@@ -300,25 +307,21 @@ def plot_group_accuracy(
         positions,
         summary["mean_accuracy"],
         yerr=summary["se_accuracy"],
-        width=0.58,
-        capsize=6,
+        width=BAR_WIDTH,
         color=[TYPE_PALETTE[type_code] for type_code in TYPE_ORDER],
-        edgecolor="#2F3437",
-        linewidth=1.0,
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=BAR_LINEWIDTH,
+        error_kw=bar_error_kw(),
         zorder=2,
     )
 
+    rng = np.random.default_rng(20260418)
     for index, type_code in enumerate(TYPE_ORDER):
         values = subject_summary.loc[subject_summary["type"] == type_code, "accuracy"].to_numpy()
-        jitter = np.linspace(-0.12, 0.12, len(values)) if len(values) > 1 else np.array([0.0])
         ax.scatter(
-            np.full(len(values), positions[index]) + jitter,
+            jittered_x(positions[index], len(values), rng),
             values,
-            s=34,
-            color=TYPE_PALETTE[type_code],
-            edgecolor="#1F2933",
-            linewidth=0.7,
-            alpha=0.75,
+            **bar_scatter_kw(),
             zorder=3,
         )
         ax.text(
@@ -375,10 +378,10 @@ def plot_subject_accuracy(subject_row: pd.DataFrame, *, language: str) -> None:
     ax.bar(
         positions,
         ordered["accuracy"],
-        width=0.58,
+        width=BAR_WIDTH,
         color=[TYPE_PALETTE[type_code] for type_code in TYPE_ORDER],
-        edgecolor="#2F3437",
-        linewidth=1.0,
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=BAR_LINEWIDTH,
         zorder=2,
     )
 
@@ -527,6 +530,7 @@ def write_report(
 
 
 def main() -> None:
+    reset_proc_output_dir(OUTPUT_DIR)
     raw = load_dj_data()
     analysis_df = prepare_accuracy_frame(raw)
     subject_summary = summarise_subject_accuracy(analysis_df)

@@ -17,6 +17,7 @@ from analysis_common import (
     filter_completed_subjects,
     load_task_tables,
     paired_test_report,
+    reset_proc_output_dir,
     save_figure,
     setup_true_space_axis,
 )
@@ -684,6 +685,7 @@ def generate_group_figures(subject_summary: pd.DataFrame, point_summary: pd.Data
 
 
 def main() -> None:
+    reset_proc_output_dir(OUTPUT_DIR)
     configure_plot_style("paper")
     configure_fonts()
     raw = load_raw_data()

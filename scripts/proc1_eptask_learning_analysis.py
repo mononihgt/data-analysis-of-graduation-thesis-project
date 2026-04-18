@@ -18,15 +18,21 @@ import pandas as pd
 import scipy.io as sio
 import seaborn as sns
 from matplotlib import font_manager
+from matplotlib import colors as mcolors
 from scipy import stats
 from scipy.ndimage import gaussian_filter
 from statsmodels.stats.anova import AnovaRM
 
 from analysis_common import (
+    BAR_EDGE_COLOR,
+    BAR_LINEWIDTH,
+    BAR_WIDTH,
     DATA_DIR,
     FACE_TRUE_RAW,
     TASK_PALETTE,
     add_true_face_points_0_to_10,
+    bar_error_kw,
+    bar_scatter_kw,
     completed_all_task_subject_ids,
     configure_plot_style,
     filter_completed_subjects,
@@ -34,8 +40,10 @@ from analysis_common import (
     infer_date_from_path,
     infer_square_side_from_face_truth,
     infer_subno_from_path,
+    jittered_x,
     mat_ret_to_df,
     pixels_to_true_space,
+    reset_proc_output_dir,
     save_figure,
     session_index_from_path,
     setup_true_space_axis,
@@ -68,6 +76,7 @@ DAY_COLORS = {
     2: TASK_PALETTE["orange"],
     3: TASK_PALETTE["green"],
 }
+HEATMAP_LOW_DENSITY_GAMMA = 0.55
 FONT_PATH_CANDIDATES = [
     Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
     Path("/System/Library/Fonts/STHeiti Light.ttc"),
@@ -475,12 +484,16 @@ def build_daily_summary(
         test_trials.groupby(["SubNo", "date", "day_index"], as_index=False)
         .agg(
             n_test_sessions=("source", "nunique"),
-            trial_count=("SubNo", "size"),
+            raw_trial_count=("SubNo", "size"),
             mean_accuracy=("acc", "mean"),
             mean_rt=("rt", "mean"),
             square_side_px=("square_side_px", "first"),
         )
         .sort_values(["SubNo", "day_index"])
+    )
+    test_day["trial_count"] = test_day["raw_trial_count"].astype(float)
+    test_day.loc[test_day["day_index"] == 3, "trial_count"] = (
+        test_day.loc[test_day["day_index"] == 3, "trial_count"] / 3.0
     )
 
     day_summary = pd.merge(
@@ -501,10 +514,11 @@ def build_daily_summary(
         "n_loaded_coordinate_points",
         "n_out_of_bounds_points",
         "n_test_sessions",
+        "raw_trial_count",
     ]
     for column in count_columns:
         day_summary[column] = day_summary[column].fillna(0).astype(int)
-    day_summary["trial_count"] = day_summary["trial_count"].astype("Int64")
+    day_summary["trial_count"] = pd.to_numeric(day_summary["trial_count"], errors="coerce")
     day_summary["day_index"] = day_summary["day_index"].astype(int)
     day_summary["SubNo"] = day_summary["SubNo"].astype(int)
     return learning_session_summary, test_session_summary, learning_day, day_summary.reset_index(drop=True)
@@ -621,17 +635,41 @@ def p_value_to_stars(p_value: float) -> str:
     return "ns"
 
 
+def format_trial_count(value: float) -> str:
+    rounded_value = round(value)
+    if np.isclose(value, rounded_value):
+        return f"{int(rounded_value)}"
+    return f"{value:.1f}"
+
+
 def add_significance_annotations(ax: plt.Axes, pairwise_df: pd.DataFrame, y_max: float) -> None:
     if pairwise_df.empty:
         return
     height = max(y_max * 0.06, 1.0)
     start = y_max * 1.04 if y_max > 0 else 1.0
-    for offset, row in enumerate(pairwise_df.sort_values(["day_a", "day_b"]).itertuples(index=False), start=0):
+    ordered_pairwise = pairwise_df.assign(comparison_span=pairwise_df["day_b"] - pairwise_df["day_a"]).sort_values(
+        ["comparison_span", "day_a", "day_b"]
+    )
+    y_levels = []
+    for row in ordered_pairwise.itertuples(index=False):
         x1 = row.day_a - 1
         x2 = row.day_b - 1
-        y = start + offset * height
-        ax.plot([x1, x1, x2, x2], [y, y + height * 0.25, y + height * 0.25, y], color="#1F2933", linewidth=0.9)
+        comparison_span = row.day_b - row.day_a
+        x_padding = 0.11 if comparison_span == 1 else 0.0
+        x1_plot = x1 + x_padding
+        x2_plot = x2 - x_padding
+        y_level = max(int(comparison_span) - 1, 0)
+        y_levels.append(y_level)
+        y = start + y_level * height
+        ax.plot(
+            [x1_plot, x1_plot, x2_plot, x2_plot],
+            [y, y + height * 0.25, y + height * 0.25, y],
+            color="#1F2933",
+            linewidth=0.9,
+        )
         ax.text((x1 + x2) / 2, y + height * 0.28, p_value_to_stars(row.p_value), ha="center", va="bottom", fontsize=9)
+    top_needed = start + (max(y_levels, default=0) + 1) * height
+    ax.set_ylim(top=max(ax.get_ylim()[1], top_needed))
 
 
 def render_heatmap(points: pd.DataFrame, bins: int = 100, sigma: float = 1.6) -> tuple[np.ndarray, tuple[float, float, float, float]]:
@@ -640,6 +678,26 @@ def render_heatmap(points: pd.DataFrame, bins: int = 100, sigma: float = 1.6) ->
     heatmap, x_edges, y_edges = np.histogram2d(x, y, bins=bins, range=[[0, 10], [0, 10]])
     heatmap = gaussian_filter(heatmap.T, sigma=sigma)
     return heatmap, (x_edges[0], x_edges[-1], y_edges[0], y_edges[-1])
+
+
+def draw_density_heatmap(
+    ax: plt.Axes,
+    heatmap: np.ndarray,
+    extent: tuple[float, float, float, float],
+    *,
+    alpha: float = 1.0,
+) -> plt.AxesImage:
+    heatmap = np.nan_to_num(heatmap, nan=0.0, posinf=0.0, neginf=0.0)
+    max_density = float(np.max(heatmap)) if heatmap.size else 0.0
+    norm: mcolors.Normalize
+    if max_density > 0:
+        norm = mcolors.PowerNorm(gamma=HEATMAP_LOW_DENSITY_GAMMA, vmin=0.0, vmax=max_density)
+    else:
+        norm = mcolors.Normalize(vmin=0.0, vmax=1.0)
+    cmap = plt.get_cmap("magma").copy()
+    cmap.set_bad("#000000")
+    cmap.set_under("#000000")
+    return ax.imshow(heatmap, extent=extent, origin="lower", cmap=cmap, norm=norm, alpha=alpha, aspect="equal")
 
 
 def plot_subject_trajectory(points: pd.DataFrame, meta: pd.Series, language: str, output_dir: Path) -> None:
@@ -701,8 +759,7 @@ def plot_subject_heatmap(points: pd.DataFrame, meta: pd.Series, language: str, o
     fig, ax = plt.subplots(figsize=(5.8, 5.2))
     setup_true_space_axis(ax, labels=language)
     heatmap, extent = render_heatmap(points, bins=96, sigma=1.8)
-    masked = np.ma.masked_where(heatmap <= 0, heatmap)
-    image = ax.imshow(masked, extent=extent, origin="lower", cmap="magma", alpha=0.88, aspect="equal")
+    image = draw_density_heatmap(ax, heatmap, extent, alpha=1.0)
     add_true_face_points_0_to_10(ax, labels=language)
     cbar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label(TEXT[language]["density"])
@@ -757,7 +814,7 @@ def plot_subject_measure(day_rows: pd.DataFrame, measure: str, language: str, ou
         for day_index, is_missing in zip(ordered["day_index"], missing_mask)
     ]
     values = ordered[measure].fillna(0).to_numpy(dtype=float)
-    bars = ax.bar(x_positions, values, color=colors, edgecolor="#2F3437", linewidth=0.9, width=0.65)
+    bars = ax.bar(x_positions, values, color=colors, edgecolor=BAR_EDGE_COLOR, linewidth=BAR_LINEWIDTH, width=BAR_WIDTH)
 
     for bar, value, is_missing in zip(bars, values, missing_mask):
         if is_missing:
@@ -772,7 +829,7 @@ def plot_subject_measure(day_rows: pd.DataFrame, measure: str, language: str, ou
             )
             bar.set_hatch("//")
             continue
-        label = f"{value:.1f}" if measure == "learning_time_s" else f"{int(value)}"
+        label = f"{value:.1f}" if measure == "learning_time_s" else format_trial_count(value)
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), label, ha="center", va="bottom", fontsize=8)
 
     tick_labels = [
@@ -798,8 +855,7 @@ def plot_group_heatmap(points: pd.DataFrame, language: str, output_dir: Path, da
     fig, ax = plt.subplots(figsize=(5.8, 5.2))
     setup_true_space_axis(ax, labels=language)
     heatmap, extent = render_heatmap(points, bins=110, sigma=2.1)
-    masked = np.ma.masked_where(heatmap <= 0, heatmap)
-    image = ax.imshow(masked, extent=extent, origin="lower", cmap="magma", alpha=0.9, aspect="equal")
+    image = draw_density_heatmap(ax, heatmap, extent, alpha=1.0)
     add_true_face_points_0_to_10(ax, labels=language)
     cbar = fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label(TEXT[language]["density"])
@@ -848,10 +904,10 @@ def plot_group_measure(day_summary: pd.DataFrame, stats_result: MeasureStats, me
         summary["mean"].fillna(0).to_numpy(dtype=float),
         yerr=summary["se"].fillna(0).to_numpy(dtype=float),
         color=[DAY_COLORS[day_index] for day_index in DAY_ORDER],
-        edgecolor="#2F3437",
-        linewidth=0.9,
-        width=0.65,
-        error_kw={"elinewidth": 1.0, "capsize": 4, "capthick": 1.0},
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=BAR_LINEWIDTH,
+        width=BAR_WIDTH,
+        error_kw=bar_error_kw(),
         zorder=2,
     )
     rng = np.random.default_rng(20260418)
@@ -859,13 +915,10 @@ def plot_group_measure(day_summary: pd.DataFrame, stats_result: MeasureStats, me
         values = figure_data.loc[figure_data["day_index"] == day_index, measure].dropna().to_numpy(dtype=float)
         if len(values) == 0:
             continue
-        jitter = rng.uniform(-0.12, 0.12, size=len(values))
         ax.scatter(
-            np.full(len(values), x_position) + jitter,
+            jittered_x(x_position, len(values), rng),
             values,
-            color="#1F2933",
-            alpha=0.55,
-            s=22,
+            **bar_scatter_kw(),
             zorder=3,
         )
 
@@ -876,21 +929,9 @@ def plot_group_measure(day_summary: pd.DataFrame, stats_result: MeasureStats, me
     ax.set_ylabel(value_label)
     ax.set_xticks(x_positions, labels=tick_labels)
     ax.set_title(title_label, fontsize=11)
-    info = (
-        f"{labels['complete_n'].format(count=stats_result.complete_n)}\n"
-        f"{labels['omnibus']}: {stats_result.omnibus_method}, p = {stats_result.omnibus_p_value:.4g}\n"
-        f"{labels['mean_se']}"
-    )
-    ax.text(
-        0.02,
-        0.98,
-        info,
-        transform=ax.transAxes,
-        va="top",
-        ha="left",
-        fontsize=8.3,
-        bbox={"facecolor": "white", "alpha": 0.92, "edgecolor": "#D1D5DB"},
-    )
+    legend = ax.get_legend()
+    if legend is not None:
+        legend.remove()
     sns.despine(ax=ax)
 
     stem = "group_learning_time_" + language if measure == "learning_time_s" else "group_test_trials_" + language
@@ -992,6 +1033,7 @@ def write_stats_report(
         "Data integration rules",
         "- proc1 is interpreted as the explore / EP task.",
         "- Test files are deduplicated only across formats with the same stem; same-day `-1`, `-2`, ... files are appended.",
+        "- Day 3 `trial_count` is divided by 3 because participants repeat the EP task three times on that day.",
         "- `squareSidePx` is inferred per SubNo × date from EP test `true_leftBar` / `true_rightBar` and canonical `FACE_TRUE_RAW`.",
         "- Learning `CoordinateData.leftBar/rightBar` pixels are converted with that SubNo × date `squareSidePx` into the shared 0-10 space.",
         f"- EP analyses use shared completed-subject filters; MR-complete reference subjects: {mr_subjects}.",
@@ -1050,6 +1092,7 @@ def write_stats_report(
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     logging.getLogger("matplotlib").setLevel(logging.WARNING)
+    reset_proc_output_dir(OUTPUT_DIR)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     LOGGER.info("Loading EP learning data")

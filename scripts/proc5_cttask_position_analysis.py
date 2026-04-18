@@ -29,6 +29,7 @@ from analysis_common import (
     infer_square_side_from_face_truth,
     load_task_tables,
     pixels_to_true_space,
+    reset_proc_output_dir,
     save_figure,
     setup_true_space_axis,
 )
@@ -693,6 +694,7 @@ def build_report(
 
 
 def main() -> None:
+    reset_proc_output_dir(OUTPUT_DIR)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     configure_plot_style(context="paper")

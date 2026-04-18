@@ -4,6 +4,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from analysis_common import (
+    BAR_DOT_ALPHA,
+    BAR_DOT_COLOR,
+    BAR_DOT_EDGE_COLOR,
+    BAR_EDGE_COLOR,
+    BAR_LINEWIDTH,
+    BAR_WIDTH,
     CONDITION_PALETTE,
     DATA_DIR as RAW_DATA_DIR,
     FACE_TRUE_RAW,
@@ -11,16 +17,20 @@ from analysis_common import (
     RESULTS_DIR,
     TASK_PALETTE,
     add_true_face_points_0_to_10,
+    bar_error_kw,
+    bar_scatter_kw,
     coerce_numeric,
     completed_all_task_subject_ids,
     configure_plot_style,
     filter_completed_subjects,
     filter_excluded_subjects,
+    jittered_x,
     load_task_tables,
     paired_test_report,
     pixels_to_true_space,
     raw_pair_condition,
     recode_distance_condition,
+    reset_proc_output_dir,
     save_figure,
     setup_true_space_axis,
 )
@@ -374,31 +384,36 @@ def save_condition_figure(subject_condition: pd.DataFrame, labels: str) -> None:
     label_map = LANG[labels]
     GROUP_FIG_DIR.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(7.0, 4.5))
-    sns.barplot(
-        data=subject_condition,
-        x="condition",
-        y="d_error_0to10",
-        order=CONDITION_ORDER,
-        estimator="mean",
-        errorbar="se",
-        hue="condition",
-        palette={condition: CONDITION_PALETTE[condition] for condition in CONDITION_ORDER},
-        legend=False,
-        capsize=0.15,
-        edgecolor="0.25",
-        linewidth=1.0,
-        ax=ax,
+    summary = (
+        subject_condition.groupby("condition")["d_error_0to10"]
+        .agg(n_subjects="count", mean="mean", sd="std")
+        .reindex(CONDITION_ORDER)
+        .reset_index()
     )
-    sns.stripplot(
-        data=subject_condition,
-        x="condition",
-        y="d_error_0to10",
-        order=CONDITION_ORDER,
-        color="0.15",
-        size=4,
-        alpha=0.75,
-        ax=ax,
+    summary["se"] = summary["sd"] / np.sqrt(summary["n_subjects"])
+    positions = np.arange(len(CONDITION_ORDER))
+    ax.bar(
+        positions,
+        summary["mean"].fillna(0).to_numpy(dtype=float),
+        yerr=summary["se"].fillna(0).to_numpy(dtype=float),
+        color=[CONDITION_PALETTE[condition] for condition in CONDITION_ORDER],
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=BAR_LINEWIDTH,
+        width=BAR_WIDTH,
+        error_kw=bar_error_kw(),
+        zorder=2,
     )
+    rng = np.random.default_rng(20260418)
+    for position, condition in zip(positions, CONDITION_ORDER):
+        values = subject_condition.loc[subject_condition["condition"] == condition, "d_error_0to10"].dropna().to_numpy(dtype=float)
+        if len(values) == 0:
+            continue
+        ax.scatter(
+            jittered_x(position, len(values), rng),
+            values,
+            **bar_scatter_kw(),
+            zorder=3,
+        )
     ax.axhline(0.0, color="#111827", linewidth=0.9, linestyle="--", alpha=0.7)
     ax.set_xlabel(label_map["condition_xlabel"])
     ax.set_ylabel(label_map["condition_ylabel"])
@@ -426,8 +441,9 @@ def save_subject_condition_figure(trial_df: pd.DataFrame, subject_condition: pd.
         hue="condition",
         palette={condition: CONDITION_PALETTE[condition] for condition in CONDITION_ORDER},
         legend=False,
-        edgecolor="0.25",
-        linewidth=1.0,
+        width=BAR_WIDTH,
+        edgecolor=BAR_EDGE_COLOR,
+        linewidth=BAR_LINEWIDTH,
         ax=ax,
     )
     sns.stripplot(
@@ -435,14 +451,12 @@ def save_subject_condition_figure(trial_df: pd.DataFrame, subject_condition: pd.
         x="condition",
         y="d_error_0to10",
         order=CONDITION_ORDER,
-        hue="condition",
-        palette={condition: CONDITION_PALETTE[condition] for condition in CONDITION_ORDER},
-        dodge=False,
-        size=4.5,
-        alpha=0.75,
-        edgecolor="#1F2933",
+        color=BAR_DOT_COLOR,
+        jitter=0.12,
+        size=4.2,
+        alpha=BAR_DOT_ALPHA,
+        edgecolor=BAR_DOT_EDGE_COLOR,
         linewidth=0.35,
-        legend=False,
         ax=ax,
     )
     ax.axhline(0.0, color="#111827", linewidth=0.9, linestyle="--", alpha=0.7)
@@ -1036,6 +1050,7 @@ def write_report(
 
 
 def main() -> None:
+    reset_proc_output_dir(OUTPUT_DIR)
     configure_plot_style("paper")
     plt.rcParams["font.family"] = ["Arial Unicode MS", "DejaVu Sans", "Arial"]
     plt.rcParams["axes.unicode_minus"] = False
