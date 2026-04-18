@@ -1,54 +1,53 @@
 # Data Analysis Repository
 
-This repository contains task-specific behavioral data analyses, source datasets, analysis notes, and generated outputs for the thesis project.
+This repository stores thesis-related behavioral task analyses, raw datasets, shared analysis rules, and regenerated outputs.
 
-## Repository Structure
-- `data/`: raw task datasets and data-specific handling notes.
-- `scripts/`: executable analysis scripts and helper commands.
-- `docs/`: architecture, development workflow, methodology notes, and design constraints.
-- `results/`: generated tables, figures, and model summaries.
-- `AGENTS.md`: repository map and rules for future agent work.
-- `pyproject.toml`, `uv.lock`: Python dependency metadata.
-
-Current task data folders include `PDtask_data`, `CTtask_data`, `DJtask_data`, `EPtask_data`, `MRtask_data`, and `SPtask1_data`.
-
-## Environment Setup
+## Quick Start
 This project targets Python 3.10+.
 
 ```bash
 uv sync
+scripts/verify.sh
 ```
 
-If you prefer the local virtual environment directly, use `.venv/bin/python`.
+Use `.venv/bin/python` directly when the local environment already exists.
 
-## Common Commands
+## Repository Structure
+- `data/`: raw task datasets and local metadata.
+- `scripts/`: executable analyses plus shared helpers in `scripts/analysis_common.py`.
+- `results/`: generated figures, tables, and model summaries.
+- `docs/`: architecture notes, workflow docs, design constraints, and analysis backlog.
+- `AGENTS.md`: repository rules for agent or scripted changes.
+- `pyproject.toml`, `uv.lock`: dependency metadata.
+
+Current task data folders include `PDtask_data`, `CTtask_data`, `DJtask_data`, `EPtask_data`, `MRtask_data`, and `SPtask1_data`.
+
+## Core Workflow
 ```bash
 scripts/verify.sh
 .venv/bin/python scripts/pdtask_d_error_analysis.py
 uv run python scripts/pdtask_d_error_analysis.py
 ```
 
-The PD task script writes outputs to `results/pdtask_d_error_analysis/`.
+The current PD analysis writes outputs to `results/pdtask_d_error_analysis/`.
 
-## PD Task Design Note
-For the PD task, the instruction manipulation differs by participant parity:
+## Critical Analysis Constraints
+- Use the shared participant filters in `scripts/analysis_common.py`; do not maintain per-script inclusion lists.
+- Normalize coordinate analyses into the shared 0–10 space before cross-subject plots, summaries, or inferential tests.
+- Do not assume a single global screen resolution; infer the task-relevant `squareSidePx` for each participant/date block.
+- Treat EP task day 3 and all later tasks completed immediately afterward as one shared screen-configuration block within each participant.
+- Use the learned EP/MR face coordinates as ground truth; treat outdated PD template coordinates as scaling aids only.
+- Recode PD `AB` and `AC` labels by participant parity before summaries or modeling:
+  - odd `SubNo`: `AB -> near`, `AC -> far`
+  - even `SubNo`: `AC -> near`, `AB -> far`
+- Do not report independent PD main effects for village relationship and distance; see `docs/pdtask-main-effect.md`.
 
-- odd-numbered participants are instructed that `AB` is closer than `AC`
-- even-numbered participants are instructed that `AC` is closer than `AB`
-
-This information is conveyed through the experiment instructions rather than directly encoded in the raw village-pair labels. PD analyses must relabel raw condition codes before condition-level summaries or modeling.
-
-In the current workflow:
-
-- `raw_condition` refers to the original pair label from the source data: `same`, `AB`, `AC`, `BC`
-- `condition` refers to the analysis-ready recoding: `same`, `near`, `far`, `unknown`
-
-Do not interpret `AB` and `AC` as fixed distance categories across all participants without applying the odd/even recoding rule first.
-
-## Analysis Constraint
-For PD task inference, follow `docs/pdtask-main-effect.md`. The key principle is that distance and village relationship are structurally confounded in the current design, so independent main effects should not be reported.
-
-## More Documentation
-- `docs/architecture.md`: analysis data flow and repository boundaries.
+## Documentation Map
+- `docs/README.md`: documentation index and recommended reading order.
+- `docs/architecture.md`: repository boundaries and shared sources of truth.
 - `docs/development.md`: setup, validation, and change workflow.
+- `docs/face-ground-truth.md`: canonical face coordinates and coordinate usage rules.
+- `docs/pdtask-main-effect.md`: PD nested-design interpretation constraint.
+- `docs/analysis-roadmap.md`: task-by-task pending analysis and figure requirements.
+- `docs/data-exclusion.md`: current exclusion reference.
 - `data/README.md`: raw data folder map.

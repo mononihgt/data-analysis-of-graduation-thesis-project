@@ -1,250 +1,80 @@
-# PD Task Design and Analysis Notes
+# PD Task Nested-Design Constraint
 
-## 1. Experimental Structure
+## Key Takeaway
+- Do not report independent main effects of village relationship and distance.
+- Recode odd and even participants first, then analyze the unified `condition` factor (`same`, `near`, `far`, `unknown`).
+- The cleanest default analysis is `Y ~ Condition + (1 | Subject)` or the subject-level analogue.
 
-### Factors
+## Why The Main Effects Are Not Identifiable
 
-- **A: Village Relationship (分类变量)**
-  - A1 = Same village
-  - A2 = Different village
+### Conceptual Factors
+- Village relationship:
+  - same village
+  - different village
+- Distance:
+  - nearest
+  - near
+  - far
+  - unknown
 
-- **B: Distance (分类变量)**
-  - B1 = Nearest
-  - B2 = Near
-  - B3 = Far
-  - B4 = Unknown
+### Observed Cells
+- same village -> nearest only
+- different village -> near / far / unknown
 
-### Observed Structure
+Missing cells are structural, not random:
+- there are no same-village near / far / unknown trials
+- there are no different-village nearest trials
 
-- A1 → B1 only
-- A2 → B2, B3, B4
+Therefore distance is nested within village relationship, and the two effects are structurally confounded.
 
-Not observed:
-- A1–B2/B3/B4
-- A2–B1
+## Correct Design Label
+- This is not a factorial design.
+- The correct description is an unbalanced nested design, with distance nested within village relationship.
 
-### Key Property
+## What You Can Estimate
 
-- Distance levels are **conditionally defined within A**
-- Therefore:
-  
-  > **B is nested within A**
+### Preferred Strategy: Single-Factor `condition`
+Define a single analysis factor:
+- `same`
+- `near`
+- `far`
+- `unknown`
 
----
+Recommended models:
 
-## 2. Design Classification
-
-### Not a Factorial Design
-
-A factorial design requires full crossing:
-
-|        | B1 | B2 | B3 | B4 |
-|--------|----|----|----|----|
-| A1     | ✔  | ✔  | ✔  | ✔  |
-| A2     | ✔  | ✔  | ✔  | ✔  |
-
-This condition is not met.
-
-### Correct Classification
-
-> **Unbalanced Nested Design**
-
-More precisely:
-- B nested within A: `B(A)`
-- Unequal number of B levels across A → unbalanced
-
----
-
-## 3. Identifiability Issue
-
-### Structural Confounding
-
-- A1 is perfectly tied to B1
-- A2 is tied to B2/B3/B4
-
-Therefore:
-
-> **A and B effects are not separable (non-identifiable)**
-
-Implications:
-- Cannot estimate independent main effects of A and B
-- No valid A × B interaction
-- No shared reference level across A
-
----
-
-## 4. Trial-Level and Subject-Level Analyses
-
-### Model Forms
-
-For raw trial-level data, use a mixed model with subject random effects:
-
-```
-Y ~ A + B(A) + (1 | Subject)
+```text
+trial level:   Y ~ Condition + (1 | Subject)
+subject level: subject_mean(Y) ~ Condition + Error(Subject / Condition)
 ```
 
-or
+When the model is stable, random condition slopes are also acceptable.
 
-```
-Y ~ Condition + (1 | Subject)
-```
+### Alternative Strategy: Decompose The Question
+- Compare same-village vs different-village overall, while explicitly stating this is confounded with distance structure.
+- Test distance effects only within different-village trials (`near`, `far`, `unknown`).
 
-When stable, include random condition slopes:
+## What You Cannot Claim
+- No independent main effect of village relationship.
+- No independent main effect of distance across the full design.
+- No interpretable village × distance interaction.
+- Do not describe the design as factorial.
 
-```
-Y ~ Condition + (1 + Condition | Subject)
-```
+## Required Reporting Language
+Use wording such as:
+- distance is nested within village relationship
+- nearest trials occur only in the same-village condition
+- the two conceptual factors cannot be fully disentangled in the current design
 
-For subject-level data, first aggregate to subject cell means and use repeated-measures ANOVA or paired planned contrasts:
+Avoid wording such as:
+- “main effect of village”
+- “main effect of distance”
+- “factorial ANOVA”
 
-```
-subject_mean(Y) ~ Condition + Error(Subject / Condition)
-```
+## Practical Implication For This Repository
+- Recode odd and even participants before any condition summary or model.
+- Use the EP/MR learned coordinates as ground truth for PD geometry work.
+- Rescale recorded PD coordinates with the participant-relevant `squareSidePx` basis, then compare them in the shared 0–10 space.
+- When updating `scripts/pdtask_d_error_analysis.py`, keep the reporting language aligned with this document.
 
-### What These Models Can Do
-
-- Handle:
-  - Unbalanced data
-  - Nested structure
-  - Subject-level dependence
-- Provide:
-  - Overall A comparison (with confounding)
-  - Clean comparisons within A2 (B2 vs B3 vs B4)
-
-### What They Cannot Do
-
-> Mixed models and repeated-measures analyses **cannot recover independent A and B effects**
-
-Reason:
-- Missing combinations are structural, not random
-- No statistical method can infer absent comparisons
-
----
-
-## 5. Recommended Analysis Strategies
-
-### Strategy 1: Decomposition Approach
-
-#### (1) Overall A Effect
-
-```
-Y ~ A + (1 | Subject)
-```
-
-or, at subject level:
-
-```
-RM-ANOVA / paired t-test on subject_mean(Y)
-```
-
-Interpretation:
-- Same-village (nearest) vs different-village (mixed distances)
-- Not a pure A effect
-
-#### (2) Distance Effect Within A2
-
-```
-Y ~ Distance (B2/B3/B4) + (1 | Subject)
-```
-
-or, at subject level:
-
-```
-RM-ANOVA / paired t-tests on subject_mean(Y)
-```
-
-Interpretation:
-- Valid test of distance effect
-- Restricted to A2
-
----
-
-### Strategy 2: Single Factor Encoding (Preferred)
-
-Define:
-
-```
-Condition:
-Condition:
-- C1 = same
-- C2 = near
-- C3 = far
-- C4 = unknown
-```
-
-Model:
-
-```
-Y ~ Condition + (1 | Subject)
-```
-
-Prefer the random-slope form when it fits stably:
-
-```
-Y ~ Condition + (1 + Condition | Subject)
-```
-
-At subject level:
-
-```
-RM-ANOVA / paired planned contrasts on subject_mean(Y)
-```
-
-Advantages:
-- Statistically clean
-- No artificial factor separation
-- Supports planned contrasts
-
----
-
-## 6. Reporting Guidance
-
-Key statement required:
-
-> Distance and village relationship are partially confounded due to design constraints.
-
-Recommended phrasing:
-
-- Distance is nested within village condition
-- The nearest distance occurs only in same-village trials
-- Effects cannot be fully disentangled
-
-Avoid:
-- Claiming independent main effects of A and B
-- Referring to the design as factorial
-
----
-
-## 7. Design Limitation and Resolution
-
-### Core Limitation
-
-> Missing cells are structural → effects are not identifiable
-
-### Only True Solution
-
-Adopt a fully crossed design:
-
-|        | Nearest | Near | Far | Unknown |
-|--------|--------|------|-----|---------|
-| Same   | ✔      | ✔    | ✔   | ✔       |
-| Different | ✔   | ✔    | ✔   | ✔       |
-
----
-
-## 8. Final Summary
-
-- The design is:
-  > **Unbalanced nested design (B nested within A)**
-
-- Key issue:
-  > **A and B are structurally confounded**
-
-- Subject controls:
-  > Improve repeated-measures estimation but do not resolve confounding
-
-- Best practice:
-  > Treat conditions as a single factor or analyze within valid subsets
-
-- Critical principle:
-  > **Statistical methods cannot compensate for missing experimental structure**
+## Only Real Design Fix
+The only full solution is a future fully crossed design in which same-village and different-village trials both contain all distance levels.

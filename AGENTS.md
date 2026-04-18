@@ -1,55 +1,59 @@
 # Repository Guidelines
 
 ## Purpose
-This repository contains behavioral task data analyses for the thesis project. Treat the repository as the system of record for analysis code, design constraints, generated outputs, and verification commands.
+This repository is the system of record for thesis-related behavioral data analysis: raw inputs, executable scripts, generated outputs, and the design constraints that govern interpretation.
 
-## Directory Map
-- `data/`: raw task datasets plus local data-handling rules; do not edit raw files without an explicit data-correction task.
-- `scripts/`: executable Python analysis scripts and lightweight helper commands.
-- `docs/`: methodology notes, architecture notes, development workflow, and analysis rationale.
-- `results/`: generated tables, figures, and model summaries grouped by analysis name.
-- `pyproject.toml`, `uv.lock`: Python dependency and environment metadata.
+## Quick Map
+- `README.md`: user-facing repository overview.
+- `docs/README.md`: documentation index and reading order.
+- `data/`: raw task datasets and local metadata; raw files are not edited unless the user explicitly asks for data correction.
+- `scripts/`: executable Python analyses and shared helpers such as `scripts/analysis_common.py`.
+- `results/`: regenerated figures, tables, and statistical summaries grouped by analysis name.
+- `docs/`: durable workflow notes, architecture rules, and task-specific interpretation constraints.
 
-Scoped `AGENTS.md` files in major subdirectories add local rules. Follow the most specific applicable file before editing.
+Scoped `AGENTS.md` files in subdirectories override this file for their own tree.
 
-## Commands
-- `uv sync`: install dependencies from `pyproject.toml` and `uv.lock`.
-- `scripts/verify.sh`: run the repository quick check.
-- `.venv/bin/python -m compileall scripts`: run the quick Python syntax check directly.
-- `.venv/bin/python scripts/pdtask_d_error_analysis.py`: regenerate PD task outputs in `results/pdtask_d_error_analysis/`.
-- `uv run python scripts/pdtask_d_error_analysis.py`: run the same analysis through `uv`.
+## Critical Analysis Rules
+- Use the shared participant filters in `scripts/analysis_common.py`; do not hardcode ad hoc subject lists in analysis scripts.
+- Treat `EXCLUDED_SUBNOS` and `filter_completed_subjects()` in `scripts/analysis_common.py` as the canonical implementation of current inclusion and exclusion rules.
+- Normalize coordinate-based analyses into the shared 0–10 space before cross-subject summaries, plots, or inferential tests; 400×400 and raw pixel spaces are intermediate representations only.
+- Different participants and different dates can use different screen configurations; infer and apply the relevant `squareSidePx` instead of assuming one global pixel template.
+- Within a participant, EP task day 3 and all tasks completed immediately afterward share the same screen configuration / `squareSidePx` block and should be rescaled consistently.
+- Use the learned EP/MR face coordinates as the psychological ground truth; do not treat the outdated PD template coordinates as true locations.
+- For PD analyses, recode odd and even participants before any condition summary or model:
+  - odd `SubNo`: `AB -> near`, `AC -> far`
+  - even `SubNo`: `AC -> near`, `AB -> far`
+- Do not report independent PD main effects for village relationship and distance; the design is nested and structurally confounded. See `docs/pdtask-main-effect.md`.
 
-## Hard Rules
-- Keep raw dataset filenames unchanged unless the user explicitly requests a data-management rename.
-- Keep generated artifacts under `results/<analysis_name>/`; do not mix generated outputs into `docs/` or `scripts/`.
-- Analysis inclusion should be restricted to participants who completed the full experiment battery; repository scripts should use the shared completed-subject filter from `scripts/analysis_common.py` instead of ad hoc subject lists.
-- Different participants and different dates can use different screen resolutions. EP task day 3 and all later tasks are run on the same screen setup for a given participant/date block; coordinate-based analyses must infer the relevant `squareSidePx` and rescale responses accordingly before cross-subject comparison.
-- All coordinate-based analyses should use a unified 0–10 coordinate system for plotting, descriptive summaries, and inferential tests; treat pixel or 400×400 task coordinates as intermediate representations only.
-- Do not report independent PD task main effects when distance and village relationship are nested and confounded.
-- Apply the odd/even participant recoding before any PD task condition summary or model.
+## Directory Rules
+- `data/`: keep source filenames stable and store task datasets under `data/<TASK>_data/`.
+- `scripts/`: prefer small helpers, explicit inputs, and shared utilities over repeated inline logic.
+- `results/`: write generated outputs only under `results/<analysis_name>/`.
+- `docs/`: keep durable rationale here, not buried in script comments or chat context.
 
-## PD Task Design
-For odd-numbered participants, instructions define `AB` as closer than `AC`. For even-numbered participants, instructions define `AC` as closer than `AB`.
-
-Keep these labels distinct:
-- `raw_condition`: direct source village-pair label (`same`, `AB`, `AC`, `BC`).
-- `condition`: analysis-ready recoding (`same`, `near`, `far`, `unknown`).
-
-Do not interpret `AB` and `AC` as fixed distance categories across all participants without first applying the recoding rule.
-- PD analyses must treat the EP/MR learned face coordinates as the psychological ground truth.
-- Do not use the PD task source-code face template as the true face layout for plotting, true-distance calculation, or Varignon true centers.
-- If PD task files contain face coordinates generated from the outdated PD template, use them only to infer screen/square scaling and normalize recorded responses before comparing against the EP/MR learned truth.
+## Common Commands
+- `uv sync`
+- `scripts/verify.sh`
+- `.venv/bin/python -m compileall scripts`
+- `.venv/bin/python scripts/pdtask_d_error_analysis.py`
+- `uv run python scripts/pdtask_d_error_analysis.py`
 
 ## Coding Style
-- Target Python 3.10+ with 4-space indentation and `snake_case` names.
-- Prefer small helper functions over long linear scripts.
-- Match the pandas, seaborn, scipy, and statsmodels workflow already used here.
-- Name analysis scripts by task and purpose, for example `pdtask_d_error_analysis.py`.
+- Target Python 3.10+.
+- Use 4-space indentation and `snake_case`.
+- Match the existing pandas / seaborn / scipy / statsmodels workflow.
+- Name analysis entry points by task and purpose, for example `pdtask_d_error_analysis.py`.
 
 ## Validation
-There is no dedicated automated test suite yet. For structural or documentation changes, run `scripts/verify.sh`. For analysis changes, rerun the affected script end to end and inspect regenerated outputs in `results/`.
+- For documentation-only changes, run `scripts/verify.sh`.
+- For script changes, rerun the affected analysis end to end and inspect the regenerated files under `results/`.
+- There is no full automated test suite yet, so be explicit about what was and was not verified.
 
-## Deeper Docs
-- `docs/architecture.md`: repository architecture and data flow.
+## Canonical Docs
+- `docs/README.md`: documentation index and reading path.
+- `docs/architecture.md`: repository shape, boundaries, and shared sources of truth.
 - `docs/development.md`: setup, validation, and change workflow.
-- `docs/pdtask-main-effect.md`: PD task nested-design inference constraint.
+- `docs/face-ground-truth.md`: canonical face coordinates and how to use them.
+- `docs/pdtask-main-effect.md`: PD nested-design inference constraint.
+- `docs/analysis-roadmap.md`: pending analysis and figure requirements by task.
+- `docs/data-exclusion.md`: current exclusion reference and maintenance rules.
