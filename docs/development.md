@@ -24,9 +24,13 @@ The quick check currently compiles Python files under `scripts/`.
 ## Common Analysis Commands
 
 ```bash
+.venv/bin/python scripts/run_all_analysis.py
+.venv/bin/python scripts/run_all_analysis.py --jobs 3
 .venv/bin/python scripts/proc4_pdtask_analysis.py
 uv run python scripts/proc4_pdtask_analysis.py
 ```
+
+`scripts/run_all_analysis.py` runs `proc1`–`proc6` in parallel. It writes one log file per script under `results/run_all_analysis/`.
 
 ## Adding Or Updating Analyses
 1. Create or update a task script in `scripts/` using the experiment `proc` prefix, for example `proc4_pdtask_analysis.py`.

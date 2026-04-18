@@ -33,6 +33,7 @@ data/<TASK>_data/ -> scripts/<task>_<purpose>.py -> results/<analysis_name>/
 
 ## Current Implemented Analyses
 Executable analyses now follow the MATLAB experiment `proc` order, with one Python entry point per task:
+- `scripts/run_all_analysis.py` orchestrates the full analysis pass and runs `proc1`–`proc6` in parallel.
 - `scripts/proc1_eptask_learning_analysis.py`
 - `scripts/proc2_sptask_rt_analysis.py`
 - `scripts/proc3_djtask_accuracy_analysis.py`

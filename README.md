@@ -25,11 +25,15 @@ Current task data folders include `PDtask_data`, `CTtask_data`, `DJtask_data`, `
 ## Core Workflow
 ```bash
 scripts/verify.sh
+.venv/bin/python scripts/run_all_analysis.py
 .venv/bin/python scripts/proc4_pdtask_analysis.py
 uv run python scripts/proc4_pdtask_analysis.py
 ```
 
+To rerun all task analyses together, use `scripts/run_all_analysis.py`. It runs `proc1`–`proc6` in parallel and writes per-script logs under `results/run_all_analysis/`.
+
 Task analysis entry points follow the MATLAB experiment `proc` order:
+- `scripts/run_all_analysis.py`
 - `scripts/proc1_eptask_learning_analysis.py`
 - `scripts/proc2_sptask_rt_analysis.py`
 - `scripts/proc3_djtask_accuracy_analysis.py`

@@ -24,6 +24,7 @@
 - Do not report independent PD main effects for village relationship and distance.
 
 ## Script Entry Points
+- `scripts/run_all_analysis.py`: 并行运行 `proc1`–`proc6`，并把日志写到 `results/run_all_analysis/`
 - `scripts/proc1_eptask_learning_analysis.py`
 - `scripts/proc2_sptask_rt_analysis.py`
 - `scripts/proc3_djtask_accuracy_analysis.py`
