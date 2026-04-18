@@ -16,6 +16,7 @@ This directory contains executable analysis scripts and small helper commands.
 - For coordinate-based tasks, infer the task-relevant `squareSidePx` for each participant/date block; do not assume one global screen resolution.
 - EP task day 3 and all tasks completed immediately afterward share the same participant-specific screen configuration / `squareSidePx` block.
 - Normalize raw pixel coordinates with the relevant `squareSidePx` and analyze them in the shared 0–10 coordinate space.
+- Keep one Python entry point per task, named with the experiment `proc` prefix such as `proc4_pdtask_analysis.py`.
 - Read raw inputs from `data/<TASK>_data/` and write outputs to `results/<analysis_name>/`.
 
 ## Validation

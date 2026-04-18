@@ -23,6 +23,14 @@
 - Recode PD odd/even participants before condition-level summaries.
 - Do not report independent PD main effects for village relationship and distance.
 
+## Script Entry Points
+- `scripts/proc1_eptask_learning_analysis.py`
+- `scripts/proc2_sptask_rt_analysis.py`
+- `scripts/proc3_djtask_accuracy_analysis.py`
+- `scripts/proc4_pdtask_analysis.py`
+- `scripts/proc5_cttask_position_analysis.py`
+- `scripts/proc6_mrtask_reconstruction_analysis.py`
+
 ## Maintenance Notes
 - Keep canonical workflow docs linked from `README.md` and root `AGENTS.md`.
 - Prefer adding a focused new doc over bloating an unrelated one.

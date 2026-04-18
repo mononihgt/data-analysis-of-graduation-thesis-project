@@ -31,8 +31,16 @@ data/<TASK>_data/ -> scripts/<task>_<purpose>.py -> results/<analysis_name>/
 - PD odd/even recoding must happen before any condition-level aggregation or model fitting.
 - PD village and distance effects are structurally confounded; see `docs/pdtask-main-effect.md`.
 
-## Current Implemented Analysis
-`scripts/pdtask_d_error_analysis.py` currently serves as the main executable analysis. It reads PD task data from `data/PDtask_data/`, applies the odd/even recoding, and writes descriptive outputs plus trial-level and subject-level summaries to `results/pdtask_d_error_analysis/`.
+## Current Implemented Analyses
+Executable analyses now follow the MATLAB experiment `proc` order, with one Python entry point per task:
+- `scripts/proc1_eptask_learning_analysis.py`
+- `scripts/proc2_sptask_rt_analysis.py`
+- `scripts/proc3_djtask_accuracy_analysis.py`
+- `scripts/proc4_pdtask_analysis.py`
+- `scripts/proc5_cttask_position_analysis.py`
+- `scripts/proc6_mrtask_reconstruction_analysis.py`
+
+Each script reads from the matching `data/<TASK>_data/` folder and writes regenerated outputs under `results/procN_.../`.
 
 ## Documentation Split
 - Use `docs/development.md` for setup, validation, and change workflow.

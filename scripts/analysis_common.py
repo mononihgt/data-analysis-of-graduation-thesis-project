@@ -46,6 +46,8 @@ FACE_TRUE_RAW = {
     5: (4.894, 2.020),
     6: (7.659, 3.185),
 }
+TRUE_SPACE_MIN = 0.0
+TRUE_SPACE_MAX = 10.0
 FACE_VILLAGE = {1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3}
 VILLAGE_LABELS = {1: "A", 2: "B", 3: "C"}
 VILLAGE_PAIRS = {
@@ -111,15 +113,23 @@ def save_figure(fig: plt.Figure, output_dir: Path, stem: str) -> None:
     plt.close(fig)
 
 
-def add_true_face_points(
+def _axis_labels(labels: str) -> tuple[str, str]:
+    if labels == "zh":
+        return "能力值", "温暖值"
+    return "Ability", "Warmth"
+
+
+def _add_face_points(
     ax: plt.Axes,
+    coordinates: dict[int, tuple[float, float]],
     *,
     labels: str = "en",
     size: float = 52,
     marker: str = "X",
     zorder: int = 5,
+    text_offset: float = 0.15,
 ) -> None:
-    for face, (x_coord, y_coord) in FACE_TRUE_400.items():
+    for face, (x_coord, y_coord) in coordinates.items():
         ax.scatter(
             x_coord,
             y_coord,
@@ -131,20 +141,88 @@ def add_true_face_points(
             zorder=zorder,
         )
         prefix = "面孔" if labels == "zh" else "F"
-        ax.text(x_coord + 6, y_coord + 6, f"{prefix}{face}", fontsize=8, zorder=zorder + 1)
+        ax.text(x_coord + text_offset, y_coord + text_offset, f"{prefix}{face}", fontsize=8, zorder=zorder + 1)
 
 
-def setup_square_axis(ax: plt.Axes, *, labels: str = "en") -> None:
-    ax.set_xlim(0, 400)
-    ax.set_ylim(0, 400)
+def add_true_face_points_0_to_10(
+    ax: plt.Axes,
+    *,
+    labels: str = "en",
+    size: float = 52,
+    marker: str = "X",
+    zorder: int = 5,
+) -> None:
+    _add_face_points(
+        ax,
+        FACE_TRUE_RAW,
+        labels=labels,
+        size=size,
+        marker=marker,
+        zorder=zorder,
+        text_offset=0.15,
+    )
+
+
+def _setup_axis(
+    ax: plt.Axes,
+    *,
+    xlim: tuple[float, float],
+    ylim: tuple[float, float],
+    labels: str = "en",
+) -> None:
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
     ax.set_aspect("equal", adjustable="box")
-    if labels == "zh":
-        ax.set_xlabel("能力值")
-        ax.set_ylabel("温暖值")
-    else:
-        ax.set_xlabel("Ability")
-        ax.set_ylabel("Warmth")
+    x_label, y_label = _axis_labels(labels)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
     sns.despine(ax=ax)
+
+
+def setup_true_space_axis(ax: plt.Axes, *, labels: str = "en") -> None:
+    _setup_axis(
+        ax,
+        xlim=(TRUE_SPACE_MIN, TRUE_SPACE_MAX),
+        ylim=(TRUE_SPACE_MIN, TRUE_SPACE_MAX),
+        labels=labels,
+    )
+
+
+def pixels_to_true_space(values: pd.Series | np.ndarray | float, square_side_px: pd.Series | np.ndarray | float):
+    return np.asarray(values, dtype=float) / np.asarray(square_side_px, dtype=float) * TRUE_SPACE_MAX
+
+
+def infer_square_side_from_face_truth(
+    df: pd.DataFrame,
+    *,
+    face_col: str = "face",
+    x_col: str = "true_leftBar",
+    y_col: str = "true_rightBar",
+) -> tuple[int, float, float]:
+    observed: list[float] = []
+    ratios: list[float] = []
+    for row in df[[face_col, x_col, y_col]].dropna().itertuples(index=False):
+        face = int(getattr(row, face_col))
+        if face not in FACE_TRUE_RAW:
+            continue
+        true_x, true_y = FACE_TRUE_RAW[face]
+        observed.extend([float(getattr(row, x_col)), float(getattr(row, y_col))])
+        ratios.extend([true_x / TRUE_SPACE_MAX, true_y / TRUE_SPACE_MAX])
+
+    observed_array = np.array(observed, dtype=float)
+    ratio_array = np.array(ratios, dtype=float)
+    if len(observed_array) == 0:
+        return 0, np.nan, np.nan
+
+    raw_estimate = float(np.dot(observed_array, ratio_array) / np.dot(ratio_array, ratio_array))
+    candidates = np.arange(max(1, int(np.floor(raw_estimate)) - 5), int(np.ceil(raw_estimate)) + 6)
+    predictions = np.rint(np.outer(candidates, ratio_array))
+    errors = predictions - observed_array
+    rmse_by_candidate = np.sqrt(np.mean(errors**2, axis=1))
+    best_index = int(np.argmin(rmse_by_candidate))
+    best_side = int(candidates[best_index])
+    max_abs_error = float(np.max(np.abs(errors[best_index])))
+    return best_side, float(rmse_by_candidate[best_index]), max_abs_error
 
 
 def infer_subno_from_path(path: Path) -> int | None:
@@ -155,6 +233,13 @@ def infer_subno_from_path(path: Path) -> int | None:
 def infer_date_from_path(path: Path) -> str | None:
     match = re.search(r"-(\d{4}-\d{2}-\d{2})(?:-\d+)?\.", path.name)
     return match.group(1) if match else None
+
+
+def session_index_from_path(path: Path) -> int:
+    match = re.search(r"\d{4}-\d{2}-\d{2}(?:-(\d+))?\.", path.name)
+    if not match:
+        return 0
+    return int(match.group(1) or 0)
 
 
 def mat_ret_to_df(path: Path) -> pd.DataFrame:
@@ -228,16 +313,12 @@ def completed_all_task_subject_ids() -> tuple[int, ...]:
     return mr_completed_subject_ids()
 
 
-def filter_mr_completed_subjects(df: pd.DataFrame, sub_col: str = "SubNo") -> pd.DataFrame:
+def filter_completed_subjects(df: pd.DataFrame, sub_col: str = "SubNo") -> pd.DataFrame:
     if sub_col not in df.columns:
         return df
     included = set(mr_completed_subject_ids())
     numeric_sub = pd.to_numeric(df[sub_col], errors="coerce")
     return df.loc[numeric_sub.isin(included)].copy()
-
-
-def filter_completed_subjects(df: pd.DataFrame, sub_col: str = "SubNo") -> pd.DataFrame:
-    return filter_mr_completed_subjects(df, sub_col=sub_col)
 
 
 def raw_pair_condition(village_a: int, village_b: int) -> str:

@@ -35,14 +35,14 @@ Scoped `AGENTS.md` files in subdirectories override this file for their own tree
 - `uv sync`
 - `scripts/verify.sh`
 - `.venv/bin/python -m compileall scripts`
-- `.venv/bin/python scripts/pdtask_d_error_analysis.py`
-- `uv run python scripts/pdtask_d_error_analysis.py`
+- `.venv/bin/python scripts/proc4_pdtask_analysis.py`
+- `uv run python scripts/proc4_pdtask_analysis.py`
 
 ## Coding Style
 - Target Python 3.10+.
 - Use 4-space indentation and `snake_case`.
 - Match the existing pandas / seaborn / scipy / statsmodels workflow.
-- Name analysis entry points by task and purpose, for example `pdtask_d_error_analysis.py`.
+- Name analysis entry points with the experiment `proc` prefix, for example `proc4_pdtask_analysis.py`.
 
 ## Validation
 - For documentation-only changes, run `scripts/verify.sh`.

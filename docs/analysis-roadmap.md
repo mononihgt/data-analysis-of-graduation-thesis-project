@@ -84,7 +84,7 @@
 - 汇总图中保留 0–10 空间里的真实点位、真实中点中点，以及所有被试测得的两次估计。
 
 #### Analysis Work
-- 在统一模板下重构 `scripts/pdtask_d_error_analysis.py`。
+- 在统一模板下维护 `scripts/proc4_pdtask_analysis.py`。
 - 检验 `D-near` 情况下两次对边中点的中点是否存在显著差异，即是否符合 Varignon 预期的重合关系。
 
 ### CT Task

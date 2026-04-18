@@ -12,16 +12,14 @@ os.environ.setdefault("XDG_CACHE_HOME", str(CACHE_DIR))
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.lines import Line2D
 from scipy import stats
 
 from analysis_common import (
-    completed_all_task_subject_ids,
     TASK_PALETTE,
     coerce_numeric,
+    completed_all_task_subject_ids,
     configure_plot_style,
     filter_completed_subjects,
-    filter_excluded_subjects,
     infer_date_from_path,
     infer_subno_from_path,
     read_table_file,
@@ -30,7 +28,7 @@ from analysis_common import (
 
 
 DATA_DIR = ROOT / "data" / "SPtask1_data"
-OUTPUT_DIR = ROOT / "results" / "sptask_rt_analysis"
+OUTPUT_DIR = ROOT / "results" / "proc2_sptask_rt_analysis"
 FIGURE_DIR = OUTPUT_DIR / "figures"
 SUFFIX_PRIORITY = {".csv": 0, ".xlsx": 1, ".mat": 2}
 NUMERIC_COLUMNS = [
@@ -44,6 +42,21 @@ NUMERIC_COLUMNS = [
     "rt",
     "mean_false",
     "mean_rt",
+]
+TRIAL_EXPORT_COLUMNS = [
+    "SubNo",
+    "subject_label",
+    "trial_index",
+    "rt",
+    "block",
+    "village",
+    "face1",
+    "face2",
+    "false_time",
+    "mean_false",
+    "mean_rt",
+    "session_date",
+    "source_file",
 ]
 
 
@@ -77,22 +90,25 @@ def build_file_catalog(data_dir: Path) -> pd.DataFrame:
     for path in sorted(data_dir.iterdir()):
         if not path.is_file() or path.suffix not in SUFFIX_PRIORITY:
             continue
+
         df = read_table_file(path)
         sub_no = infer_subno_from_path(path)
         if sub_no is None and "SubNo" in df.columns:
             sub_values = pd.to_numeric(df["SubNo"], errors="coerce").dropna().unique()
             if len(sub_values) == 1:
                 sub_no = int(sub_values[0])
+
+        session_date = infer_date_from_path(path)
         rows.append(
             {
                 "path": path,
                 "source_file": path.name,
                 "subno": sub_no,
-                "session_date": infer_date_from_path(path),
+                "session_date": session_date,
                 "suffix": path.suffix,
                 "suffix_priority": SUFFIX_PRIORITY[path.suffix],
                 "n_rows": len(df),
-                "has_date": bool(infer_date_from_path(path)),
+                "has_date": bool(session_date),
             }
         )
 
@@ -100,7 +116,6 @@ def build_file_catalog(data_dir: Path) -> pd.DataFrame:
     if catalog.empty:
         raise FileNotFoundError(f"No SPtask1 data files found in {data_dir}")
 
-    catalog = filter_excluded_subjects(catalog, "subno")
     catalog = filter_completed_subjects(catalog, "subno")
     catalog = catalog.dropna(subset=["subno"]).copy()
     catalog["subno"] = catalog["subno"].astype(int)
@@ -130,7 +145,6 @@ def load_selected_sessions(selected_files: pd.DataFrame) -> pd.DataFrame:
         frames.append(df)
 
     raw = pd.concat(frames, ignore_index=True)
-    raw = filter_excluded_subjects(raw, "SubNo")
     raw = filter_completed_subjects(raw, "SubNo")
     raw = coerce_numeric(raw, NUMERIC_COLUMNS)
     raw = raw.dropna(subset=["SubNo", "rt"]).copy()
@@ -171,8 +185,19 @@ def summarize_subject_trends(trial_df: pd.DataFrame) -> pd.DataFrame:
     for sub_no, sub_df in trial_df.groupby("SubNo", sort=True):
         x_values = sub_df["trial_index"].to_numpy(dtype=float)
         y_values = sub_df["rt"].to_numpy(dtype=float)
-        slope, intercept, r_value, p_value, stderr = stats.linregress(x_values, y_values)
-        spearman_rho, spearman_p = stats.spearmanr(x_values, y_values)
+
+        if len(sub_df) < 2:
+            slope = np.nan
+            intercept = np.nan
+            r_value = np.nan
+            p_value = np.nan
+            stderr = np.nan
+            spearman_rho = np.nan
+            spearman_p = np.nan
+        else:
+            slope, intercept, r_value, p_value, stderr = stats.linregress(x_values, y_values)
+            spearman_rho, spearman_p = stats.spearmanr(x_values, y_values)
+
         rows.append(
             {
                 "SubNo": int(sub_no),
@@ -240,23 +265,8 @@ def save_csv_outputs(
         columns={"subno": "SubNo", "n_rows": "n_trials"}
     ).to_csv(OUTPUT_DIR / "selected_sessions.csv", index=False)
 
-    trial_df[
-        [
-            "SubNo",
-            "subject_label",
-            "trial_index",
-            "rt",
-            "block",
-            "village",
-            "face1",
-            "face2",
-            "false_time",
-            "mean_false",
-            "mean_rt",
-            "session_date",
-            "source_file",
-        ]
-    ].to_csv(OUTPUT_DIR / "trial_level_rt.csv", index=False)
+    available_trial_columns = [column for column in TRIAL_EXPORT_COLUMNS if column in trial_df.columns]
+    trial_df[available_trial_columns].to_csv(OUTPUT_DIR / "trial_level_rt.csv", index=False)
     subject_summary.to_csv(OUTPUT_DIR / "subject_rt_summary.csv", index=False)
     trial_summary.to_csv(OUTPUT_DIR / "trial_position_summary.csv", index=False)
     trend_summary.to_csv(OUTPUT_DIR / "subject_trend_summary.csv", index=False)
@@ -267,24 +277,18 @@ def label_text(labels: str) -> dict[str, str]:
         return {
             "trial": "试次编号",
             "rt": "反应时（秒）",
-            "subject_title": "SP任务被试{subject}反应时轨迹",
+            "subject_title": "Proc2 / SP任务被试{subject}反应时轨迹",
             "subject_subtitle": "数据文件：{source}；日期：{date}；试次数：{n_trials}",
-            "group_title": "SP任务所有被试反应时轨迹",
-            "group_subtitle": "灰线为单个被试，蓝线为均值，阴影为 ±1 SEM",
-            "group_note": "后续试次的纳入被试数逐步减少。",
-            "individual": "单个被试",
-            "mean": "均值",
+            "group_title": "Proc2 / SP任务所有被试反应时轨迹",
+            "group_subtitle": "每条折线代表一名被试；后续试次的纳入被试数可能减少。",
         }
     return {
         "trial": "Trial index",
         "rt": "Reaction time (s)",
-        "subject_title": "SP task RT trajectory for {subject}",
+        "subject_title": "Proc2 / SP task RT trajectory for {subject}",
         "subject_subtitle": "Source: {source}; date: {date}; trials: {n_trials}",
-        "group_title": "SP task RT trajectories across subjects",
-        "group_subtitle": "Gray lines show individual subjects; blue line shows mean ± 1 SEM",
-        "group_note": "Later trial positions include fewer subjects.",
-        "individual": "Individual subject",
-        "mean": "Mean ± SEM",
+        "group_title": "Proc2 / SP task RT trajectories across subjects",
+        "group_subtitle": "Each line represents one subject; later trial positions may include fewer subjects.",
     }
 
 
@@ -333,56 +337,38 @@ def plot_subject_rt(sub_df: pd.DataFrame, labels: str) -> None:
     )
     ax.set_xlim(1, max(int(sub_df["trial_index"].max()), 1))
     sns_despine(ax)
-    stem = f"figures/{subject_label.lower()}_rt_{labels}"
-    save_figure(fig, OUTPUT_DIR, stem)
+    save_figure(fig, OUTPUT_DIR, f"figures/{subject_label.lower()}_rt_{labels}")
 
 
-def plot_group_rt(trial_df: pd.DataFrame, trial_summary: pd.DataFrame, labels: str) -> None:
+def plot_group_rt(trial_df: pd.DataFrame, labels: str) -> None:
     text = label_text(labels)
     fig, ax = plt.subplots(figsize=(9.2, 5.4))
 
-    for _, sub_df in trial_df.groupby("SubNo", sort=True):
+    line_colors = [
+        TASK_PALETTE["blue"],
+        TASK_PALETTE["orange"],
+        TASK_PALETTE["green"],
+        TASK_PALETTE["red"],
+        TASK_PALETTE["purple"],
+        TASK_PALETTE["brown"],
+        TASK_PALETTE["cyan"],
+        TASK_PALETTE["gray"],
+    ]
+    for color_index, (_, sub_df) in enumerate(trial_df.groupby("SubNo", sort=True)):
         ax.plot(
             sub_df["trial_index"],
             sub_df["rt"],
-            color=TASK_PALETTE["gray"],
-            linewidth=1.0,
-            alpha=0.28,
+            color=line_colors[color_index % len(line_colors)],
+            linewidth=1.25,
+            alpha=0.46,
             zorder=1,
         )
 
-    x_values = trial_summary["trial_index"].to_numpy(dtype=float)
-    mean_values = trial_summary["mean_rt"].to_numpy(dtype=float)
-    se_values = trial_summary["se_rt"].fillna(0).to_numpy(dtype=float)
-    ax.fill_between(
-        x_values,
-        mean_values - se_values,
-        mean_values + se_values,
-        color=TASK_PALETTE["cyan"],
-        alpha=0.28,
-        zorder=2,
-    )
-    ax.plot(
-        x_values,
-        mean_values,
-        color=TASK_PALETTE["blue"],
-        linewidth=2.8,
-        marker="o",
-        markersize=3.6,
-        zorder=3,
-    )
-
-    handles = [
-        Line2D([0], [0], color=TASK_PALETTE["gray"], linewidth=1.3, alpha=0.5, label=text["individual"]),
-        Line2D([0], [0], color=TASK_PALETTE["blue"], linewidth=2.8, marker="o", markersize=4, label=text["mean"]),
-    ]
-    ax.legend(handles=handles, loc="upper right")
     ax.set_xlabel(text["trial"])
     ax.set_ylabel(text["rt"])
     ax.set_title(text["group_title"], pad=12)
     ax.text(0.01, 1.01, text["group_subtitle"], transform=ax.transAxes, ha="left", va="bottom", fontsize=9, color="#4B5563")
-    ax.text(0.99, 0.02, text["group_note"], transform=ax.transAxes, ha="right", va="bottom", fontsize=9, color="#4B5563")
-    ax.set_xlim(1, max(int(trial_summary["trial_index"].max()), 1))
+    ax.set_xlim(1, max(int(trial_df["trial_index"].max()), 1))
     sns_despine(ax)
     save_figure(fig, OUTPUT_DIR, f"figures/all_subjects_rt_{labels}")
 
@@ -414,13 +400,15 @@ def write_report(
     )
 
     lines = [
-        "SP task RT analysis / SP任务反应时分析",
-        "===================================",
+        "Proc2 / SP task RT analysis / Proc2 / SP任务反应时分析",
+        "====================================================",
         "",
         "Data selection / 数据选择",
         "------------------------",
-        "- Base exclusions followed repository defaults: SubNo 1, 15, 17.",
-        f"- Completed-all-task subject pool: {list(completed_all_task_subject_ids())}.",
+        "- Proc mapping: proc2 = village classification / SP task.",
+        "- SP RT analysis does not use coordinate scaling.",
+        "- Participant inclusion used the shared `filter_completed_subjects()` completed-subject filter.",
+        f"- Completed-all-task subject pool from `completed_all_task_subject_ids()`: {list(completed_all_task_subject_ids())}.",
         "- Kept one session per subject after deduplicating parallel exports (.csv/.xlsx/.mat).",
         "- When the same session had multiple exports, the script kept the most complete file and then preferred csv > xlsx > mat.",
         "- When a subject had multiple dated sessions, the most recent dated session was kept.",
@@ -429,6 +417,7 @@ def write_report(
         "--------------------------",
         f"- Included subjects: {subject_summary['SubNo'].nunique()}",
         f"- Total analyzed trials: {len(trial_df)}",
+        f"- Selected source files: {len(selected_files)}",
         f"- Trial-count range per subject: {int(subject_summary['n_trials'].min())} to {int(subject_summary['n_trials'].max())}",
         f"- Overall RT mean ± SD: {rt_values.mean():.3f} ± {rt_values.std(ddof=1):.3f} s",
         f"- Overall RT median [min, max]: {rt_values.median():.3f} [{rt_values.min():.3f}, {rt_values.max():.3f}] s",
@@ -455,7 +444,7 @@ def write_report(
         "---------------------",
         interpretation_line,
         "- The negative median slope indicates that RT generally decreased over trials, consistent with practice-related speeding in this task.",
-        "- Later trial positions contain fewer subjects because session lengths vary, so late-trial group means should be read with that changing denominator in mind.",
+        "- Later trial positions contain fewer subjects because session lengths vary, so late-trial group summaries should be read with that changing denominator in mind.",
         "",
         "Outputs / 输出文件",
         "------------------",
@@ -488,7 +477,7 @@ def main() -> None:
     for labels in ("zh", "en"):
         for _, sub_df in trial_df.groupby("SubNo", sort=True):
             plot_subject_rt(sub_df, labels)
-        plot_group_rt(trial_df, trial_summary, labels)
+        plot_group_rt(trial_df, labels)
     write_report(selected_files, trial_df, subject_summary, trial_summary, trend_summary, slope_test)
 
 

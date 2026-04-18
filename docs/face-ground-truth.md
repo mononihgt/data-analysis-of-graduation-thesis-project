@@ -39,10 +39,10 @@
 ### EP Task
 - EP 原始任务中的目标条长度来自公式：`facebar = round((facevalue / 10) * squareSidePx)`。
 - 因此，同一组 0–10 真值在不同 `squareSidePx` 下会对应不同的像素坐标。
-- 已有审计脚本 `scripts/eptask_square_side_audit.py` 会根据记录下来的 `true_leftBar` / `true_rightBar` 反推 `squareSidePx`。
+- `scripts/proc1_eptask_learning_analysis.py` 会根据记录下来的 `true_leftBar` / `true_rightBar` 反推 `squareSidePx`。
 - 不同被试、不同日期可能使用不同屏幕分辨率，因此 EP 的 `squareSidePx` 需要按“被试 × 日期”推断，而不是全局固定。
 - 已知同一被试的 EP task day 3 与其后立即完成的任务处在同一个屏幕配置块中，因此 day 3 推断出的 `squareSidePx` 可作为后续任务的缩放依据。
-- 当前审计结果 `results/eptask_square_side_audit/eptask_square_side_audit_report.txt` 显示，已观测到的 `best_integer_square_side` 并不唯一，而是至少包括：
+- 当前 EP 分析输出 `results/proc1_eptask_learning_analysis/tables/subject_date_square_side_summary.csv` 会记录每个被试日期的 `best_integer_square_side`；已观测到的值并不唯一，而是至少包括：
   - `218`
   - `313`
   - `373`
@@ -52,7 +52,7 @@
 
 ### CT Task
 - CT 原始 `true_leftBar` / `true_rightBar` 在不同 cohort 中会变化。
-- 当前分析脚本 `scripts/cttask_position_analysis.py` 的做法不是直接假设固定像素真值，而是：
+- 当前分析脚本 `scripts/proc5_cttask_position_analysis.py` 的做法不是直接假设固定像素真值，而是：
   - 先用每名被试原始文件里的 `true_leftBar` / `true_rightBar`；
   - 结合对应 session 的 `squareSidePx` 做缩放；
   - 最后统一映射回共享的 0–10 空间做比较和统计。
@@ -75,10 +75,10 @@
 
 ## Recommended References
 - `scripts/analysis_common.py`：canonical truth constants。
-- `scripts/eptask_square_side_audit.py`：EP 的 `squareSidePx` 推断逻辑。
-- `results/eptask_square_side_audit/eptask_square_side_audit_report.txt`：当前已审计到的方框尺寸分布。
-- `scripts/cttask_position_analysis.py`：CT 的个体线性映射逻辑。
-- `scripts/pdtask_d_error_analysis.py`：PD 的个体尺度归一化逻辑。
+- `scripts/proc1_eptask_learning_analysis.py`：EP 的 `squareSidePx` 推断与学习轨迹分析。
+- `results/proc1_eptask_learning_analysis/tables/subject_date_square_side_summary.csv`：当前已审计到的方框尺寸分布。
+- `scripts/proc5_cttask_position_analysis.py`：CT 的个体线性映射逻辑。
+- `scripts/proc4_pdtask_analysis.py`：PD 的个体尺度归一化逻辑。
 
 ## Related Docs
 - `docs/architecture.md`

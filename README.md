@@ -25,11 +25,19 @@ Current task data folders include `PDtask_data`, `CTtask_data`, `DJtask_data`, `
 ## Core Workflow
 ```bash
 scripts/verify.sh
-.venv/bin/python scripts/pdtask_d_error_analysis.py
-uv run python scripts/pdtask_d_error_analysis.py
+.venv/bin/python scripts/proc4_pdtask_analysis.py
+uv run python scripts/proc4_pdtask_analysis.py
 ```
 
-The current PD analysis writes outputs to `results/pdtask_d_error_analysis/`.
+Task analysis entry points follow the MATLAB experiment `proc` order:
+- `scripts/proc1_eptask_learning_analysis.py`
+- `scripts/proc2_sptask_rt_analysis.py`
+- `scripts/proc3_djtask_accuracy_analysis.py`
+- `scripts/proc4_pdtask_analysis.py`
+- `scripts/proc5_cttask_position_analysis.py`
+- `scripts/proc6_mrtask_reconstruction_analysis.py`
+
+Each script writes outputs to the matching `results/procN_.../` directory.
 
 ## Critical Analysis Constraints
 - Use the shared participant filters in `scripts/analysis_common.py`; do not maintain per-script inclusion lists.

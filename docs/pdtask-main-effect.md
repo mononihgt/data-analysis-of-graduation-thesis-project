@@ -74,7 +74,7 @@ Avoid wording such as:
 - Recode odd and even participants before any condition summary or model.
 - Use the EP/MR learned coordinates as ground truth for PD geometry work.
 - Rescale recorded PD coordinates with the participant-relevant `squareSidePx` basis, then compare them in the shared 0–10 space.
-- When updating `scripts/pdtask_d_error_analysis.py`, keep the reporting language aligned with this document.
+- When updating `scripts/proc4_pdtask_analysis.py`, keep the reporting language aligned with this document.
 
 ## Only Real Design Fix
 The only full solution is a future fully crossed design in which same-village and different-village trials both contain all distance levels.
