@@ -21,6 +21,8 @@ PROC_SCRIPTS = [
     "proc5_cttask_position_analysis.py",
     "proc6_mrtask_reconstruction_analysis.py",
 ]
+FIRST_SCRIPT = PROC_SCRIPTS[0]
+REMAINING_SCRIPTS = PROC_SCRIPTS[1:]
 
 
 @dataclass
@@ -33,13 +35,16 @@ class RunResult:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run proc1-proc6 analysis scripts in parallel.",
+        description="Run proc1-proc6 analysis scripts with proc1 first.",
     )
     parser.add_argument(
         "--jobs",
         type=int,
         default=len(PROC_SCRIPTS),
-        help="Number of scripts to run concurrently. Default: all proc scripts.",
+        help=(
+            "Number of scripts to run concurrently after proc1 finishes. "
+            "Default: all proc scripts."
+        ),
     )
     parser.add_argument(
         "--python",
@@ -79,6 +84,11 @@ def run_one_script(script_name: str, python_bin: str) -> RunResult:
     )
 
 
+def print_result(result: RunResult) -> None:
+    status = "OK" if result.return_code == 0 else f"FAIL ({result.return_code})"
+    print(f"[{status}] {result.script_name} in {result.duration_seconds:.1f}s")
+
+
 def print_summary(results: list[RunResult]) -> int:
     failed = [result for result in results if result.return_code != 0]
     print("\nRun summary")
@@ -101,20 +111,30 @@ def print_summary(results: list[RunResult]) -> int:
 def main() -> int:
     args = parse_args()
     jobs = max(1, min(args.jobs, len(PROC_SCRIPTS)))
-    print(f"Running {len(PROC_SCRIPTS)} analysis scripts with {jobs} parallel worker(s).")
+    parallel_jobs = max(1, min(jobs, len(REMAINING_SCRIPTS)))
+    print(
+        f"Running {len(PROC_SCRIPTS)} analysis scripts with proc1 first and "
+        f"up to {parallel_jobs} parallel worker(s) afterward."
+    )
     print(f"Logs: {LOG_DIR}")
 
     results: list[RunResult] = []
-    with ThreadPoolExecutor(max_workers=jobs) as executor:
+
+    first_result = run_one_script(FIRST_SCRIPT, args.python)
+    results.append(first_result)
+    print_result(first_result)
+    if first_result.return_code != 0:
+        return print_summary(results)
+
+    with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
         future_map = {
             executor.submit(run_one_script, script_name, args.python): script_name
-            for script_name in PROC_SCRIPTS
+            for script_name in REMAINING_SCRIPTS
         }
         for future in as_completed(future_map):
             result = future.result()
             results.append(result)
-            status = "OK" if result.return_code == 0 else f"FAIL ({result.return_code})"
-            print(f"[{status}] {result.script_name} in {result.duration_seconds:.1f}s")
+            print_result(result)
 
     return print_summary(results)
 

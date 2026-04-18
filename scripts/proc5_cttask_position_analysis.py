@@ -70,6 +70,9 @@ TEXT = {
         "legend_trial": "Trial response",
         "legend_subject_mean": "Subject face mean",
         "legend_face": "Face color",
+        "group_mean_se": "Mean ± SE",
+        "n_subjects": "Included subjects",
+        "face_prefix": "F",
         "report_title": "CT task position analysis (proc5)",
         "report_section_data": "Data and preprocessing",
         "report_section_desc": "Descriptive summary by face",
@@ -92,6 +95,9 @@ TEXT = {
         "legend_trial": "单次复原",
         "legend_subject_mean": "被试面孔均值",
         "legend_face": "面孔颜色",
+        "group_mean_se": "均值 ± 标准误",
+        "n_subjects": "纳入被试",
+        "face_prefix": "面孔",
         "report_title": "CT任务位置分析（proc5）",
         "report_section_data": "数据与预处理",
         "report_section_desc": "按面孔的描述统计",
@@ -502,9 +508,10 @@ def save_subject_figure(subject_trials: pd.DataFrame, *, subno: int, language: s
     save_figure(fig, SUBJECT_FIG_DIR, f"sub-{subno:02d}_cttask_positions_0_to_10_{language}")
 
 
-def save_group_figure(subject_means: pd.DataFrame, *, language: str) -> None:
+def save_group_figure(subject_means: pd.DataFrame, face_summary: pd.DataFrame, *, language: str) -> None:
     labels = TEXT[language]
-    fig, ax = plt.subplots(figsize=(7.6, 7.2))
+    axis_language = "zh" if language == "zh" else "en"
+    fig, ax = plt.subplots(figsize=(7.0, 6.4))
     add_true_face_points_0_to_10(ax, labels=language, size=90, marker="X", zorder=5)
 
     for face, face_means in subject_means.groupby("face"):
@@ -512,30 +519,51 @@ def save_group_figure(subject_means: pd.DataFrame, *, language: str) -> None:
         ax.scatter(
             face_means["ability_0_10"],
             face_means["warmth_0_10"],
-            s=42,
-            alpha=0.42,
+            s=28,
+            alpha=0.24,
             color=color,
             edgecolor="none",
-            zorder=3,
+            zorder=2,
+        )
+        face_row = face_summary.loc[face_summary["face"] == face].iloc[0]
+        ax.errorbar(
+            face_row["mean_ability_0_10"],
+            face_row["mean_warmth_0_10"],
+            xerr=face_row["se_ability_0_10"],
+            yerr=face_row["se_warmth_0_10"],
+            fmt="o",
+            markersize=7,
+            color=color,
+            ecolor=color,
+            elinewidth=1.3,
+            capsize=3,
+            markeredgecolor="#1F2933",
+            markeredgewidth=0.8,
+            zorder=4,
+        )
+        ax.text(
+            face_row["mean_ability_0_10"] + 0.16,
+            face_row["mean_warmth_0_10"] - 0.24,
+            f"{labels['face_prefix']}{int(face)}",
+            fontsize=8,
+            color="#1F2933",
+            zorder=6,
         )
 
-    setup_true_space_axis(ax, labels=language)
+    setup_true_space_axis(ax, labels=axis_language)
     ax.set_xticks(np.arange(0, 10.1, 2))
     ax.set_yticks(np.arange(0, 10.1, 2))
     ax.set_title(labels["group_title"], pad=16)
     ax.text(
-        0.5,
-        1.01,
-        labels["group_subtitle"].format(n_subjects=subject_means["SubNo"].nunique()),
+        0.02,
+        0.98,
+        f"{labels['n_subjects']}: {subject_means['SubNo'].nunique()}\n{labels['group_mean_se']}",
         transform=ax.transAxes,
-        ha="center",
-        va="bottom",
+        ha="left",
+        va="top",
         fontsize=9,
-        color="#4B5563",
+        color="#374151",
     )
-    first_legend = ax.legend(handles=legend_handles(language, include_subject_mean=True), loc="upper left", fontsize=8)
-    ax.add_artist(first_legend)
-    ax.legend(handles=face_color_handles(language), loc="lower right", fontsize=8, ncol=2)
     save_figure(fig, GROUP_FIG_DIR, f"cttask_group_subject_means_0_to_10_{language}")
 
 
@@ -713,7 +741,7 @@ def main() -> None:
             save_subject_figure(subject_trial_slice, subno=int(subno), language=language)
 
     for language in ("en", "zh"):
-        save_group_figure(subject_means, language=language)
+        save_group_figure(subject_means, face_summary, language=language)
 
     save_tables(standardized, session_map, subject_means, face_summary, face_tests)
     for language in ("en", "zh"):

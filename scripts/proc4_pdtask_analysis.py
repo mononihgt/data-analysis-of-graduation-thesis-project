@@ -358,7 +358,106 @@ def summarize_d_error(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     }
 
 
-def save_condition_figure(subject_condition: pd.DataFrame, labels: str) -> None:
+def p_value_to_stars(p_value: float) -> str:
+    if pd.isna(p_value):
+        return "NA"
+    if p_value < 0.001:
+        return "***"
+    if p_value < 0.01:
+        return "**"
+    if p_value < 0.05:
+        return "*"
+    return "ns"
+
+
+def annotate_condition_significance(
+    ax: plt.Axes,
+    subject_condition: pd.DataFrame,
+    summary: pd.DataFrame,
+    planned_contrasts: pd.DataFrame,
+) -> None:
+    condition_contrasts = planned_contrasts.loc[
+        (planned_contrasts["scope"] == "condition")
+        & planned_contrasts["n_subjects"].gt(0)
+        & planned_contrasts["p_value"].notna()
+        & planned_contrasts["p_value"].lt(0.05)
+    ].copy()
+    if condition_contrasts.empty:
+        return
+
+    condition_positions = {condition: position for position, condition in enumerate(CONDITION_ORDER)}
+    condition_contrasts[["left_condition", "right_condition"]] = condition_contrasts["contrast"].str.split(
+        " - ",
+        expand=True,
+    )
+    condition_contrasts = condition_contrasts.loc[
+        condition_contrasts["left_condition"].isin(condition_positions)
+        & condition_contrasts["right_condition"].isin(condition_positions)
+    ].copy()
+    if condition_contrasts.empty:
+        return
+
+    condition_contrasts["x1"] = condition_contrasts["left_condition"].map(condition_positions)
+    condition_contrasts["x2"] = condition_contrasts["right_condition"].map(condition_positions)
+    condition_contrasts["span"] = (condition_contrasts["x1"] - condition_contrasts["x2"]).abs()
+    condition_contrasts = condition_contrasts.sort_values(["span", "x1", "x2", "p_value"]).reset_index(drop=True)
+
+    current_bottom, current_top = ax.get_ylim()
+    visible_span = max(current_top - current_bottom, 1.0)
+    height = max(visible_span * 0.018, 0.04)
+    level_gap = max(visible_span * 0.055, 0.12)
+    text_offset = max(visible_span * 0.01, 0.02)
+    condition_maxima = subject_condition.groupby("condition")["d_error_0to10"].max().reindex(CONDITION_ORDER)
+    bar_tops = summary.set_index("condition")["mean"].add(summary.set_index("condition")["se"], fill_value=0.0).reindex(
+        CONDITION_ORDER
+    )
+    occupied_levels: list[tuple[int, int, float]] = []
+    max_text_top = current_top
+    for row in condition_contrasts.itertuples(index=False):
+        x1 = int(row.x1)
+        x2 = int(row.x2)
+        comparison_span = abs(x2 - x1)
+        x_padding = 0.11 if comparison_span == 1 else 0.0
+        x1_plot = min(x1, x2) + x_padding
+        x2_plot = max(x1, x2) - x_padding
+        left = min(x1, x2)
+        right = max(x1, x2)
+        involved_conditions = CONDITION_ORDER[left : right + 1]
+        local_point_max = (
+            float(condition_maxima.loc[involved_conditions].dropna().max())
+            if not condition_maxima.loc[involved_conditions].dropna().empty
+            else 0.0
+        )
+        local_bar_max = (
+            float(bar_tops.loc[involved_conditions].dropna().max()) if not bar_tops.loc[involved_conditions].dropna().empty else 0.0
+        )
+        y = max(local_point_max, local_bar_max) + level_gap
+        while any(
+            not (right < used_left or left > used_right) and y <= used_y + level_gap * 0.95
+            for used_left, used_right, used_y in occupied_levels
+        ):
+            y += level_gap
+        occupied_levels.append((left, right, y))
+        ax.plot(
+            [x1_plot, x1_plot, x2_plot, x2_plot],
+            [y, y + height * 0.25, y + height * 0.25, y],
+            color="#1F2933",
+            linewidth=0.9,
+        )
+        ax.text(
+            (x1 + x2) / 2,
+            y + height + text_offset,
+            p_value_to_stars(float(row.p_value)),
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+        max_text_top = max(max_text_top, y + height + text_offset)
+    top_needed = max_text_top + level_gap * 0.6
+    ax.set_ylim(top=max(ax.get_ylim()[1], top_needed))
+
+
+def save_condition_figure(subject_condition: pd.DataFrame, planned_contrasts: pd.DataFrame, labels: str) -> None:
     label_map = LANG[labels]
     GROUP_FIG_DIR.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(7.0, 4.5))
@@ -393,6 +492,7 @@ def save_condition_figure(subject_condition: pd.DataFrame, labels: str) -> None:
             zorder=3,
         )
     ax.axhline(0.0, color="#111827", linewidth=0.9, linestyle="--", alpha=0.7)
+    annotate_condition_significance(ax, subject_condition, summary, planned_contrasts)
     ax.set_xlabel(label_map["condition_xlabel"])
     ax.set_ylabel(label_map["condition_ylabel"])
     ax.set_xticks(range(len(CONDITION_ORDER)), labels=label_map["condition_ticklabels"])
@@ -1057,7 +1157,7 @@ def main() -> None:
         near_axis_tests=near_axis_tests,
     )
     for labels in ["zh", "en"]:
-        save_condition_figure(d_error_outputs["subject_condition"], labels)
+        save_condition_figure(d_error_outputs["subject_condition"], d_error_outputs["planned_contrasts"], labels)
     save_subject_condition_figures(trial_df, d_error_outputs["subject_condition"])
     if not match_df.empty and not subject_centers.empty:
         save_varignon_figures(match_df, subject_centers)
