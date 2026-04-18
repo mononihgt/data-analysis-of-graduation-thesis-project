@@ -28,6 +28,7 @@ data/<TASK>_data/ -> scripts/<task>_<purpose>.py -> results/<analysis_name>/
 - Screen-dependent task files must be rescaled using the relevant `squareSidePx` before cross-subject comparison; do not assume one global screen resolution.
 - EP task day 3 and the tasks completed immediately afterward form one participant-specific screen-configuration block and should share the same scaling basis.
 - EP/MR learned coordinates are the canonical face ground truth; see `docs/face-ground-truth.md`.
+- PD must reuse the same participant's proc1 day-3 `squareSidePx`; PD `F*X` / `F*Y` fields, PD file dates, and old PD template constants are not valid scale references.
 - PD odd/even recoding must happen before any condition-level aggregation or model fitting.
 - PD village and distance effects are structurally confounded; see `docs/pdtask-main-effect.md`.
 

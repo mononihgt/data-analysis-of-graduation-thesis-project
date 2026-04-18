@@ -73,7 +73,8 @@ Avoid wording such as:
 ## Practical Implication For This Repository
 - Recode odd and even participants before any condition summary or model.
 - Use the EP/MR learned coordinates as ground truth for PD geometry work.
-- Rescale recorded PD coordinates with the participant-relevant `squareSidePx` basis, then compare them in the shared 0–10 space.
+- Rescale recorded PD coordinates with the same participant's proc1 day-3 `squareSidePx`, then compare them in the shared 0–10 space.
+- Do not use PD `F*X` / `F*Y` fields or outdated PD template constants as learning truth or scale references.
 - When updating `scripts/proc4_pdtask_analysis.py`, keep the reporting language aligned with this document.
 
 ## Only Real Design Fix

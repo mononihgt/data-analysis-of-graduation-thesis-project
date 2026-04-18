@@ -35,7 +35,7 @@ uv run python scripts/proc4_pdtask_analysis.py
 ## Adding Or Updating Analyses
 1. Create or update a task script in `scripts/` using the experiment `proc` prefix, for example `proc4_pdtask_analysis.py`.
 2. Reuse shared helpers from `scripts/analysis_common.py` for filters, recoding, plotting style, and shared coordinates.
-3. For coordinate-based tasks, infer the participant/date-relevant `squareSidePx` before comparing subjects; EP task day 3 and the later tasks from that same session share one scaling block.
+3. For coordinate-based tasks, infer the participant/date-relevant `squareSidePx` before comparing subjects; EP task day 3 and the later tasks from that same session share one scaling block, and PD should reuse that proc1 day-3 value rather than any PD-specific template.
 4. Output coordinate-based plots and inferential tests in the shared 0–10 space rather than in raw pixels or 400×400 coordinates.
 5. Write outputs under `results/<analysis_name>/`.
 6. Record durable interpretation constraints or workflow changes in `docs/`.

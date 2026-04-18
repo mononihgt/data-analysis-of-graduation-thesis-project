@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
-
 from analysis_common import (
     BAR_DOT_ALPHA,
     BAR_DOT_COLOR,
@@ -13,7 +10,6 @@ from analysis_common import (
     CONDITION_PALETTE,
     DATA_DIR as RAW_DATA_DIR,
     FACE_TRUE_RAW,
-    PD_RECORDED_FACE_TRUE_400,
     RESULTS_DIR,
     TASK_PALETTE,
     add_true_face_points_0_to_10,
@@ -47,6 +43,7 @@ DATA_DIR = RAW_DATA_DIR / "PDtask_data"
 OUTPUT_DIR = RESULTS_DIR / "proc4_pdtask_analysis"
 SUBJECT_FIG_DIR = OUTPUT_DIR / "figures_subject"
 GROUP_FIG_DIR = OUTPUT_DIR / "figures_group"
+PROC1_DAY3_SCALE_TABLE = RESULTS_DIR / "proc1_eptask_learning_analysis" / "tables" / "subject_day_summary.csv"
 
 CONDITION_ORDER = ["same", "near", "far", "unknown"]
 RAW_QUADRILATERALS = {
@@ -116,71 +113,51 @@ LANG = {
 }
 
 
-@dataclass
-class SquareSideInference:
-    sub_no: int
-    source_date: str
-    raw_estimate: float
-    square_side_px: int
-    scale_to_template_400: float
-    rmse_px: float
-    max_abs_error_px: float
-
-
 def order_polygon(points: np.ndarray) -> np.ndarray:
     center = points.mean(axis=0)
     angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
     return points[np.argsort(angles)]
 
 
-def recorded_face_vector() -> np.ndarray:
-    return np.array([coord for face in range(1, 7) for coord in PD_RECORDED_FACE_TRUE_400[face]], dtype=float)
+def load_proc1_day3_square_side() -> pd.DataFrame:
+    if not PROC1_DAY3_SCALE_TABLE.exists():
+        raise FileNotFoundError(
+            "Missing proc1 day-3 square-side table at "
+            f"{PROC1_DAY3_SCALE_TABLE}. Run scripts/proc1_eptask_learning_analysis.py first."
+        )
 
+    scale_df = pd.read_csv(PROC1_DAY3_SCALE_TABLE)
+    required_columns = {
+        "SubNo",
+        "date",
+        "day_index",
+        "square_side_px",
+        "square_side_rmse_px",
+        "square_side_max_abs_error_px",
+    }
+    missing_columns = required_columns.difference(scale_df.columns)
+    if missing_columns:
+        missing = ", ".join(sorted(missing_columns))
+        raise ValueError(f"proc1 day-3 scale table is missing required columns: {missing}")
 
-def face_coordinate_template(subject_df: pd.DataFrame) -> dict[int, tuple[float, float]]:
-    coords: dict[int, tuple[float, float]] = {}
-    for face in range(1, 7):
-        face_coords: list[tuple[float, float]] = []
-        for prefix in ["F1", "F2"]:
-            face_coords.extend(
-                map(
-                    tuple,
-                    subject_df.loc[
-                        subject_df[prefix] == face,
-                        [f"{prefix}X", f"{prefix}Y"],
-                    ]
-                    .dropna()
-                    .to_numpy(),
-                )
-            )
-        if not face_coords:
-            raise ValueError(f"Missing recorded face coordinates for subject {int(subject_df['SubNo'].iloc[0])}, face {face}")
-        coords[face] = tuple(np.median(np.array(face_coords, dtype=float), axis=0))
-    return coords
+    day3_scale = scale_df.loc[scale_df["day_index"] == 3, list(required_columns)].copy()
+    if day3_scale.empty:
+        raise ValueError(f"No day-3 rows found in proc1 scale table: {PROC1_DAY3_SCALE_TABLE}")
 
+    duplicate_keys = day3_scale.duplicated(subset=["SubNo"], keep=False)
+    if duplicate_keys.any():
+        duplicate_rows = day3_scale.loc[duplicate_keys, ["SubNo", "date"]].drop_duplicates()
+        raise ValueError(
+            "Duplicate proc1 day-3 square-side rows for PD mapping:\n"
+            f"{duplicate_rows.to_string(index=False)}"
+        )
 
-def infer_square_side(subject_df: pd.DataFrame) -> SquareSideInference:
-    recorded_template = face_coordinate_template(subject_df)
-    observed_vector = np.array([coord for face in range(1, 7) for coord in recorded_template[face]], dtype=float)
-    template_vector = recorded_face_vector()
-
-    raw_estimate = float(400.0 * np.dot(observed_vector, template_vector) / np.dot(template_vector, template_vector))
-    candidate_sides = np.arange(max(1, int(np.floor(raw_estimate)) - 5), int(np.ceil(raw_estimate)) + 6)
-    predicted = np.outer(candidate_sides / 400.0, template_vector)
-    errors = predicted - observed_vector
-    rmse_by_candidate = np.sqrt(np.mean(errors**2, axis=1))
-    best_index = int(np.argmin(rmse_by_candidate))
-    square_side_px = int(candidate_sides[best_index])
-    source_date = str(subject_df["source_date"].dropna().iloc[0])
-    return SquareSideInference(
-        sub_no=int(subject_df["SubNo"].iloc[0]),
-        source_date=source_date,
-        raw_estimate=raw_estimate,
-        square_side_px=square_side_px,
-        scale_to_template_400=400.0 / square_side_px,
-        rmse_px=float(rmse_by_candidate[best_index]),
-        max_abs_error_px=float(np.max(np.abs(errors[best_index]))),
-    )
+    day3_scale = day3_scale.rename(columns={"date": "proc1_day3_date"})
+    day3_scale["proc1_day3_date"] = day3_scale["proc1_day3_date"].astype(str)
+    day3_scale["SubNo"] = day3_scale["SubNo"].astype(int)
+    day3_scale["square_side_px"] = day3_scale["square_side_px"].astype(int)
+    day3_scale["scale_source"] = "proc1_day3"
+    return day3_scale.sort_values(["SubNo"]).reset_index(drop=True)
 
 
 def learned_pair_distance(face_a: int, face_b: int) -> float:
@@ -241,21 +218,22 @@ def load_pd_trials() -> pd.DataFrame:
 
 
 def prepare_trials(raw_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    scale_rows = []
-    for (_, _), subject_df in raw_df.groupby(["SubNo", "source_date"], sort=True):
-        inference = infer_square_side(subject_df)
-        scale_rows.append(
-            {
-                "SubNo": inference.sub_no,
-                "source_date": inference.source_date,
-                "raw_estimate": inference.raw_estimate,
-                "square_side_px": inference.square_side_px,
-                "scale_to_template_400": inference.scale_to_template_400,
-                "rmse_px": inference.rmse_px,
-                "max_abs_error_px": inference.max_abs_error_px,
-            }
+    required_subject_dates = raw_df[["SubNo", "source_date"]].drop_duplicates().sort_values(["SubNo", "source_date"])
+    proc1_day3_scale = load_proc1_day3_square_side()
+    scale_df = required_subject_dates.merge(
+        proc1_day3_scale,
+        on=["SubNo"],
+        how="left",
+        validate="many_to_one",
+    )
+    missing_scale = scale_df.loc[scale_df["square_side_px"].isna(), ["SubNo", "source_date"]]
+    if not missing_scale.empty:
+        raise ValueError(
+            "Missing proc1 day-3 squareSidePx for PD subject rows:\n"
+            f"{missing_scale.to_string(index=False)}"
         )
-    scale_df = pd.DataFrame(scale_rows).sort_values(["SubNo", "source_date"]).reset_index(drop=True)
+    scale_df["square_side_px"] = scale_df["square_side_px"].astype(int)
+    scale_df["pd_date_matches_proc1_day3"] = scale_df["source_date"] == scale_df["proc1_day3_date"]
 
     df = raw_df.merge(scale_df, on=["SubNo", "source_date"], how="left", validate="many_to_one")
     coord_columns = ["F1X", "F1Y", "F2X", "F2Y", "MidX", "MidY", "MX", "MY", "MMX", "MMY", "DX", "DY", "D", "ans_D"]
@@ -934,7 +912,7 @@ def save_tables(
     near_axis_tests: pd.DataFrame,
 ) -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    scale_df.to_csv(OUTPUT_DIR / "subject_square_side_inference.csv", index=False)
+    scale_df.to_csv(OUTPUT_DIR / "subject_square_side_reference.csv", index=False)
     trial_df.to_csv(OUTPUT_DIR / "normalized_pd_trials.csv", index=False)
     d_error_outputs["subject_condition"].to_csv(OUTPUT_DIR / "d_error_subject_condition_means.csv", index=False)
     d_error_outputs["relationship_means"].to_csv(OUTPUT_DIR / "d_error_subject_relationship_means.csv", index=False)
@@ -975,7 +953,9 @@ def write_report(
         "",
         "Coordinate normalization",
         "------------------------",
-        "PD_RECORDED_FACE_TRUE_400 is used only to infer each subject's recorded squareSidePx.",
+        f"PD squareSidePx is loaded from proc1 day-3 output: {PROC1_DAY3_SCALE_TABLE}.",
+        "PD F1X/F1Y/F2X/F2Y fields are not learning truth and are not used as scale references.",
+        "The outdated PD template/program-set face positions are treated as erroneous legacy values with no analytical meaning.",
         "All recorded PD coordinates and distances are rescaled to the shared 0-10 space before aggregation, plotting, or statistics.",
         "True geometry for all PD plots and learned D references comes from FACE_TRUE_RAW.",
         f"Included subject pool follows completed-all-task participants: {list(completed_all_task_subject_ids())}.",

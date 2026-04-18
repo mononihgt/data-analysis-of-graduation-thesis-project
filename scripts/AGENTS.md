@@ -15,6 +15,7 @@ This directory contains executable analysis scripts and small helper commands.
 - Use the shared completed-subject filter in `scripts/analysis_common.py` for participant inclusion; do not hardcode per-script inclusion lists.
 - For coordinate-based tasks, infer the task-relevant `squareSidePx` for each participant/date block; do not assume one global screen resolution.
 - EP task day 3 and all tasks completed immediately afterward share the same participant-specific screen configuration / `squareSidePx` block.
+- For PD analyses, reuse the same participant's proc1 day-3 `squareSidePx`; do not derive scale from PD `F*X` / `F*Y` fields, PD file dates, or legacy PD template constants.
 - Normalize raw pixel coordinates with the relevant `squareSidePx` and analyze them in the shared 0–10 coordinate space.
 - Keep one Python entry point per task, named with the experiment `proc` prefix such as `proc4_pdtask_analysis.py`.
 - Read raw inputs from `data/<TASK>_data/` and write outputs to `results/<analysis_name>/`.

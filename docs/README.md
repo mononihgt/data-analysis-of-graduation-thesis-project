@@ -20,6 +20,7 @@
 - Do not assume a single global screen resolution; infer the relevant `squareSidePx` for each participant/date block.
 - EP task day 3 and all tasks completed immediately afterward share the same participant-specific screen configuration / `squareSidePx`.
 - Use the learned EP/MR face coordinates as canonical truth.
+- For PD, reuse proc1 day-3 `squareSidePx`; do not reuse PD template coordinates or PD-program hardcoded face positions.
 - Recode PD odd/even participants before condition-level summaries.
 - Do not report independent PD main effects for village relationship and distance.
 

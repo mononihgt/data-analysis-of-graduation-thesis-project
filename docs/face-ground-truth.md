@@ -59,8 +59,9 @@
 
 ### PD Task
 - PD 分析中的真实几何关系来自 EP/MR 学到的 face coordinates，而不是 PD 旧模板。
-- `PD_RECORDED_FACE_TRUE_400` 只用于推断每个被试记录坐标对应的方框尺度。
-- 推断出被试特异尺度之后，应把坐标统一放缩回 0–10 空间，再与 canonical truth 比较。
+- 被试只在 EP 阶段学习 face coordinates；PD 程序里那套旧的 face 位置设定不是学习真值，也不是有效的缩放参照。
+- PD 的 `squareSidePx` 应直接复用同一被试 proc1 day-3 的推断结果；PD 文件日期和 PD 程序内置坐标都不能作为尺度来源。
+- 在 PD 中，原始像素记录只用于把行为坐标按对应 `squareSidePx` 放缩回共享的 0–10 空间，再与 canonical truth 比较。
 
 ### MR Task
 - MR 数据里实际重建矩形的长宽由 `WarmthRange` / `AbilityRange`（或 legacy `Xrange` / `Yrange`）决定。

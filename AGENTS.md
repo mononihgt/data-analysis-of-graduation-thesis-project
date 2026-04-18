@@ -19,7 +19,9 @@ Scoped `AGENTS.md` files in subdirectories override this file for their own tree
 - Normalize coordinate-based analyses into the shared 0–10 space before cross-subject summaries, plots, or inferential tests; 400×400 and raw pixel spaces are intermediate representations only.
 - Different participants and different dates can use different screen configurations; infer and apply the relevant `squareSidePx` instead of assuming one global pixel template.
 - Within a participant, EP task day 3 and all tasks completed immediately afterward share the same screen configuration / `squareSidePx` block and should be rescaled consistently.
-- Use the learned EP/MR face coordinates as the psychological ground truth; do not treat the outdated PD template coordinates as true locations.
+- Use the learned EP/MR face coordinates as the psychological ground truth.
+- For PD analyses, load `squareSidePx` from the same participant's proc1 day 3; do not infer it from PD `F*X` / `F*Y` fields, PD file dates, or any outdated PD template constants.
+- Treat outdated PD template coordinates and PD-program hardcoded face positions as erroneous legacy values with no analytical meaning.
 - For PD analyses, recode odd and even participants before any condition summary or model:
   - odd `SubNo`: `AB -> near`, `AC -> far`
   - even `SubNo`: `AC -> near`, `AB -> far`

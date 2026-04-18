@@ -48,7 +48,8 @@ Each script writes outputs to the matching `results/procN_.../` directory.
 - Normalize coordinate analyses into the shared 0–10 space before cross-subject plots, summaries, or inferential tests.
 - Do not assume a single global screen resolution; infer the task-relevant `squareSidePx` for each participant/date block.
 - Treat EP task day 3 and all later tasks completed immediately afterward as one shared screen-configuration block within each participant.
-- Use the learned EP/MR face coordinates as ground truth; treat outdated PD template coordinates as scaling aids only.
+- Use the learned EP/MR face coordinates as ground truth.
+- For PD, load `squareSidePx` from the same participant's proc1 day-3 output; PD template coordinates and PD-program hardcoded face positions are erroneous legacy values, not scaling aids.
 - Recode PD `AB` and `AC` labels by participant parity before summaries or modeling:
   - odd `SubNo`: `AB -> near`, `AC -> far`
   - even `SubNo`: `AC -> near`, `AB -> far`
