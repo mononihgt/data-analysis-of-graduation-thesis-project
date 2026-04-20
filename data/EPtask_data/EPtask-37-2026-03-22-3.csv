@@ -1,0 +1,7 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+37,pqh,Male,20,Right,1,240,318,236,320,3,1,14.0786623781096
+37,pqh,Male,20,Right,1,286,119,294,118,6,1,16.9447606781096
+37,pqh,Male,20,Right,1,90,179,84,180,1,1,15.5258118692341
+37,pqh,Male,20,Right,1,183,75,184,76,5,1,16.1968313869852
+37,pqh,Male,20,Right,1,329,251,330,236,4,1,18.152409169234
+37,pqh,Male,20,Right,1,104,290,110,280,2,1,24.6603992781097

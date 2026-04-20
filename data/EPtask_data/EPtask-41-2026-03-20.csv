@@ -1,0 +1,5 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+41,fza,Male,19,Right,1,183,76,180,56,5,0,14.6597299413984
+41,fza,Male,19,Right,1,286,119,266,102,6,0,23.3259860503154
+41,fza,Male,19,Right,1,330,251,307.083989060739,249.657383688643,4,0,30.3593182503155
+41,fza,Male,19,Right,1,240,319,228,196,3,0,19.6333734057289

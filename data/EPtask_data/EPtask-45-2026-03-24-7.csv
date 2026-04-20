@@ -1,0 +1,5 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+45,yxy,Female,19,Right,1,90,179,98,184,1,1,12.4803281140848
+45,yxy,Female,19,Right,1,104,290,125.928735807238,287.465406774802,2,0,19.971716423308
+45,yxy,Female,19,Right,1,330,251,339.93695859871,249.592546012825,4,1,23.3577064325291
+45,yxy,Female,19,Right,1,183,76,186,102,5,0,12.0456129233098

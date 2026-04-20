@@ -1,0 +1,7 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+12,zzc,Male,23,Right,1,153,63,158,66,5,1,8.91660319999983
+12,zzc,Male,23,Right,1,240,100,240,92,6,1,16.8823828
+12,zzc,Male,23,Right,1,276,210,282,214,4,1,10.6656757000001
+12,zzc,Male,23,Right,1,201,267,208,262,3,1,9.98651750000045
+12,zzc,Male,23,Right,1,87,243,92,248,2,1,10.5781393000002
+12,zzc,Male,23,Right,1,76,150,72,152,1,1,14.2730673000001

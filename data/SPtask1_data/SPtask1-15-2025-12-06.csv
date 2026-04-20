@@ -1,0 +1,4 @@
+SubNo,Name,Gender,Age,Handedness,village,face1,face2,false_time,rt,mean_false,mean_rt,block
+15,xhty,Male,21,Right,2,3,4,0,5.4729983000002,5.4729983000002,0,1
+15,xhty,Male,21,Right,1,1,2,0,2.30469310000035,3.88884570000027,0,1
+15,xhty,Male,21,Right,3,5,6,0,2.26314249999996,3.3469446333335,0,1

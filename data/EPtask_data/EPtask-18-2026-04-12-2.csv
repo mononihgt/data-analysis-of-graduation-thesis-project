@@ -1,0 +1,4 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+18,wbx,Male,18,Right,1,153,63,144,70,5,1,14.4544945
+18,wbx,Male,18,Right,1,87,243,82,232,2,1,10.414516
+18,wbx,Male,18,Right,1,276,210,274,198,4,1,10.5668419000001

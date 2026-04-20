@@ -1,0 +1,4 @@
+SubNo,Name,Gender,Age,Handedness,village,face1,face2,false_time,rt,mean_false,mean_rt,block
+41,fza,Male,19,Right,2,3,4,0,6.79894599999989,6.79894599999989,0,1
+41,fza,Male,19,Right,3,5,6,0,2.6629224999997,4.73093424999979,0,1
+41,fza,Male,19,Right,1,1,2,0,3.02947489999951,4.16378113333303,0,1

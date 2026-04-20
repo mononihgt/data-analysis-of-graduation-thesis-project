@@ -1,0 +1,6 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+47,lxc,Male,21,Right,1,183,75,184,82,5,1,7.7928622
+47,lxc,Male,21,Right,1,286,119,112,276,6,0,15.55195
+47,lxc,Male,21,Right,1,329,251,332,220,4,0,16.722931
+47,lxc,Male,21,Right,1,240,318,242,328,3,1,12.9786673000001
+47,lxc,Male,21,Right,1,104,290,118,264,2,0,26.6524767

@@ -1,0 +1,11 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+4,xxr,Female,19,Right,1,107,44,109,44,5,1,11.4294213587409
+4,xxr,Female,19,Right,1,192,146,191,140,4,1,20.1024708173181
+4,xxr,Female,19,Right,1,167,69,174,71,6,1,16.6515101966343
+4,xxr,Female,19,Right,1,140,186,139,175,3,0,24.1445543431873
+4,xxr,Female,19,Right,1,61,169,60,176,2,1,16.8490276707644
+4,xxr,Female,19,Right,1,53,104,49,107,1,1,18.1904231242124
+4,xxr,Female,19,Right,2,192,146,193,141,4,1,22.6854846035285
+4,xxr,Female,19,Right,2,140,186,139,188,3,1,24.4456044242124
+4,xxr,Female,19,Right,2,61,169,58,173,2,1,17.398241917319
+4,xxr,Female,19,Right,2,167,69,176,68,6,1,15.749272763871

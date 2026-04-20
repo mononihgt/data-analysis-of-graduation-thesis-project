@@ -1,0 +1,2 @@
+SubNo,Name,Gender,Age,Handedness,face,true_leftBar,true_rightBar,leftBarLength,rightBarLength,error,acc,rt
+1,cyy,Male,18,Right,3,240,319,0.574916813102774,108.273515856334,318.951440784649,0,4.15401296981554

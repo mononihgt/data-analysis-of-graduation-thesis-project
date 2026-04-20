@@ -1,0 +1,7 @@
+SubNo,Name,Gender,Age,Handedness,test_time,true_leftBar,true_rightBar,leftBarLength,rightBarLength,face,acc,rt
+29,lzb,Female,22,Right,1,90,179,94,184,1,1,9.64062417606328
+29,lzb,Female,22,Right,1,240,318,248,326,3,1,11.5918621932888
+29,lzb,Female,22,Right,1,183,75,180,80,5,1,9.96732584161327
+29,lzb,Female,22,Right,1,104,290,102,292,2,1,12.7371664932889
+29,lzb,Female,22,Right,1,286,119,286,120,6,1,9.85041498467763
+29,lzb,Female,22,Right,1,329,251,338,254,4,1,30.9612437846772
