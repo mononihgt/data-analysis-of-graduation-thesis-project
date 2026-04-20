@@ -1,0 +1,37 @@
+CT task position analysis (proc5)
+================================================================
+
+Data and preprocessing
+- Input directory: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/data/CTtask_data
+- Included subjects: 26 (2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49)
+- Total included trials: 624
+- Base exclusions: 1, 15, 17
+- Completed-all-task subjects: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49]
+- For each subject/session, raw `true_leftBar` and `true_rightBar` were matched to canonical `FACE_TRUE_RAW` to infer `squareSidePx`, then `leftBarLength` and `rightBarLength` were rescaled into the shared 0–10 space.
+- Inferred `squareSidePx` distribution: {218: 1, 313: 5, 373: 6, 374: 7, 400: 7}
+- Median session mapping RMSE: 0.000px; median max-absolute error: 0.000px.
+
+Descriptive summary by face
+- Face 1: mean=(2.438, 4.810), truth=(2.416, 4.788), bias=(0.022, 0.022), subject-mean Euclidean bias=0.382, mean trial Euclidean bias=0.427.
+- Face 2: mean=(2.912, 7.543), truth=(2.789, 7.765), bias=(0.123, -0.222), subject-mean Euclidean bias=0.568, mean trial Euclidean bias=0.632.
+- Face 3: mean=(6.366, 8.436), truth=(6.426, 8.527), bias=(-0.060, -0.091), subject-mean Euclidean bias=0.450, mean trial Euclidean bias=0.518.
+- Face 4: mean=(8.699, 6.469), truth=(8.817, 6.716), bias=(-0.118, -0.247), subject-mean Euclidean bias=0.530, mean trial Euclidean bias=0.609.
+- Face 5: mean=(4.967, 2.116), truth=(4.894, 2.020), bias=(0.073, 0.096), subject-mean Euclidean bias=0.268, mean trial Euclidean bias=0.307.
+- Face 6: mean=(7.529, 3.032), truth=(7.659, 3.185), bias=(-0.130, -0.153), subject-mean Euclidean bias=0.429, mean trial Euclidean bias=0.489.
+
+Face-wise inferential tests
+- Primary-test rule: report one-sample Hotelling T² when both coordinate-wise subject-mean bias distributions pass Shapiro p ≥ 0.05; otherwise report a sign-flip permutation test on a Hotelling-like T² statistic.
+- Both the parametric reference and the robust permutation alternative are retained for comparison.
+- Face 1: Primary test=sign-flip permutation on Hotelling-like T², T²=0.4752, p=0.8065, FDR-BH p=0.8065; Parametric reference Hotelling T²=0.4752, F=0.2281, p=0.7977; Permutation alternative T²=0.4752, p=0.8065, n=20000; Shapiro p=(0.06581, 4.882e-06).
+- Face 2: Primary test=sign-flip permutation on Hotelling-like T², T²=5.6621, p=0.0553, FDR-BH p=0.08295; Parametric reference Hotelling T²=5.6621, F=2.7178, p=0.08631; Permutation alternative T²=5.6621, p=0.0553, n=20000; Shapiro p=(0.2237, 0.0164).
+- Face 3: Primary test=sign-flip permutation on Hotelling-like T², T²=1.3583, p=0.5578, FDR-BH p=0.6694; Parametric reference Hotelling T²=1.3583, F=0.6520, p=0.53; Permutation alternative T²=1.3583, p=0.5578, n=20000; Shapiro p=(0.02062, 7.559e-05).
+- Face 4: Primary test=sign-flip permutation on Hotelling-like T², T²=9.5429, p=0.0038, FDR-BH p=0.009929; Parametric reference Hotelling T²=9.5429, F=4.5806, p=0.02065; Permutation alternative T²=9.5429, p=0.0038, n=20000; Shapiro p=(1.788e-06, 0.00179).
+- Face 5: Primary test=sign-flip permutation on Hotelling-like T², T²=14.9665, p=0.0014, FDR-BH p=0.0084; Parametric reference Hotelling T²=14.9665, F=7.1839, p=0.003589; Permutation alternative T²=14.9665, p=0.0014, n=20000; Shapiro p=(0.02213, 0.9186).
+- Face 6: Primary test=one-sample Hotelling T², F=6.6721, p=0.004964, FDR-BH p=0.009929; Parametric reference Hotelling T²=13.9002, F=6.6721, p=0.004964; Permutation alternative T²=13.9002, p=0.00245, n=20000; Shapiro p=(0.3076, 0.09369).
+
+Faces significant after FDR-BH correction on the primary test: 4, 5, 6.
+
+Generated outputs
+- Subject figures: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/subjects
+- Group figures: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/group
+- CSV tables: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/tables

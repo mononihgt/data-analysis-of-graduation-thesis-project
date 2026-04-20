@@ -1,0 +1,44 @@
+Proc3 DJ task accuracy analysis report
+======================================
+Generated: 2026-04-18T18:24:14
+
+Data and scope
+--------------
+Script: scripts/proc3_djtask_accuracy_analysis.py
+Data directory: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/data/DJtask_data
+Output directory: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc3_djtask_accuracy_analysis
+Shared filters: filter_excluded_subjects() and filter_completed_subjects() from scripts/analysis_common.py.
+Primary analysis keeps type = 1 and type = 3 only.
+Roadmap convention used in this proc3 report:
+- type = 1: same-village distance judgment
+- type = 3: cross-village distance judgment
+Parity-specific village-distance rule:
+- odd SubNo: AB = near, AC = far
+- even SubNo: AC = near, AB = far
+Accuracy is computed from the recorded `acc` field, so participant-specific correct-answer rules are preserved.
+Completed-all-task subject pool: 2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49
+Included subjects (n = 26): 2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49
+Included trial count: 832
+
+Descriptive summaries
+---------------------
+Same-village distance judgment: mean subject accuracy = 0.981, SD = 0.034, SE = 0.007, range = [0.875, 1.000]
+Cross-village distance judgment: mean subject accuracy = 0.969, SD = 0.041, SE = 0.008, range = [0.875, 1.000]
+Lowest subject-level accuracy across analyzed bars = 0.875.
+
+Inferential statistics
+----------------------
+type_1 vs chance (0.50): Wilcoxon signed-rank test (greater), n = 26, mean diff = 0.481, statistic = 351.000, p < 0.001.
+type_3 vs chance (0.50): Wilcoxon signed-rank test (greater), n = 26, mean diff = 0.469, statistic = 351.000, p < 0.001.
+type 1 vs type 3: Wilcoxon signed-rank test, n = 26, mean difference = 0.012, statistic = 24.000, p = 0.197.
+
+Generated files
+---------------
+- `proc3_subject_accuracy_summary.csv`: per-subject proc3 accuracy summary.
+- `proc3_group_accuracy_summary.csv`: group-level proc3 accuracy summary.
+- `proc3_statistical_tests.csv`: tabular inferential results.
+- `proc3_statistical_tests.txt`: readable inferential summary.
+- `proc3_trial_type_overview.csv`: overview of all trial types after shared filtering.
+- `proc3_analysis_report.txt`: this report.
+- `proc3_dj_accuracy_group_en.png` and `proc3_dj_accuracy_group_zh.png`: bilingual group figures.
+- `subject_figures/proc3_sub-XX_dj_accuracy_en.png` and `subject_figures/proc3_sub-XX_dj_accuracy_zh.png`: bilingual subject figures.

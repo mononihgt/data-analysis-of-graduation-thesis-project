@@ -1,0 +1,290 @@
+proc4 PD task analysis
+======================
+
+Design note
+-----------
+Odd/even recoding is applied before every summary and statistical test:
+- odd SubNo: AB -> near, AC -> far
+- even SubNo: AC -> near, AB -> far
+- BC remains the structurally nested different-village unknown condition
+The PD task is treated as a nested design; no independent village or distance main effect is reported.
+
+Coordinate normalization
+------------------------
+PD squareSidePx is loaded from proc1 day-3 output: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc1_eptask_learning_analysis/tables/subject_day_summary.csv.
+PD F1X/F1Y/F2X/F2Y fields are not learning truth and are not used as scale references.
+The outdated PD template/program-set face positions are treated as erroneous legacy values with no analytical meaning.
+All recorded PD coordinates and distances are rescaled to the shared 0-10 space before aggregation, plotting, or statistics.
+True geometry for all PD plots and learned D references comes from FACE_TRUE_RAW.
+Included subject pool follows completed-all-task participants: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49].
+
+Square-side inference
+---------------------
+ SubNo source_date  square_side_max_abs_error_px proc1_day3_date  day_index  square_side_rmse_px  square_side_px scale_source  pd_date_matches_proc1_day3
+     2  2026-03-29                        0.0000      2026-03-29          3               0.0000             374   proc1_day3                        True
+     6  2026-03-29                        0.0000      2026-03-29          3               0.0000             218   proc1_day3                        True
+     8  2026-03-29                        0.0000      2026-03-29          3               0.0000             374   proc1_day3                        True
+     9  2025-11-25                        0.0000      2025-11-25          3               0.0000             400   proc1_day3                        True
+    10  2026-03-29                        0.0000      2026-03-29          3               0.0000             373   proc1_day3                        True
+    11  2025-11-25                        0.0000      2025-11-25          3               0.0000             400   proc1_day3                        True
+    12  2026-04-12                        0.0000      2026-04-12          3               0.0000             313   proc1_day3                        True
+    13  2025-12-06                        0.0000      2025-12-06          3               0.0000             400   proc1_day3                        True
+    14  2026-04-12                        0.0000      2026-04-12          3               0.0000             313   proc1_day3                        True
+    15  2025-12-06                        0.0000      2025-12-06          3               0.0000             400   proc1_day3                        True
+    16  2026-04-12                        0.0000      2026-04-12          3               0.0000             313   proc1_day3                        True
+    17  2025-12-06                        0.0000      2025-12-06          3               0.0000             400   proc1_day3                        True
+    18  2026-04-12                        0.0000      2026-04-12          3               0.0000             313   proc1_day3                        True
+    20  2026-04-12                        0.0000      2026-04-12          3               0.0000             313   proc1_day3                        True
+    21  2025-12-09                        0.0000      2025-12-09          3               0.0000             400   proc1_day3                        True
+    23  2025-12-09                           NaN      2025-12-09          3                  NaN             400   proc1_day3                        True
+    29  2026-03-16                        0.0000      2026-03-16          3               0.0000             373   proc1_day3                        True
+    31  2026-03-16                        0.0000      2026-03-16          3               0.0000             374   proc1_day3                        True
+    35  2025-07-18                        0.0000      2026-03-21          3               0.0000             373   proc1_day3                       False
+    37  2026-03-22                        0.0000      2026-03-22          3               0.0000             373   proc1_day3                        True
+    39  2026-03-22                        0.0000      2026-03-22          3               0.0000             374   proc1_day3                        True
+    41  2026-03-22                        0.0000      2026-03-22          3               0.0000             374   proc1_day3                        True
+    43  2026-03-26                        0.0000      2026-03-26          3               0.0000             374   proc1_day3                        True
+    45  2026-03-26                        0.0000      2026-03-26          3               0.0000             374   proc1_day3                        True
+    47  2026-03-26                        0.0000      2026-03-26          3               0.0000             373   proc1_day3                        True
+    49  2025-07-18                        0.0000      2026-03-25          3               0.0000             374   proc1_day3                       False
+
+D-error subject summary
+-----------------------
+condition  n_subjects    mean     sd     se
+      far          26 -0.2909 0.8201 0.1608
+     near          26 -0.3044 0.6635 0.1301
+     same          26  0.0163 0.4632 0.0908
+  unknown          26 -0.2173 0.7901 0.1550
+
+D-error planned contrasts
+-------------------------
+          scope         contrast  n_subjects                    method  mean_diff  sd_diff  normality_shapiro_p  statistic  p_value
+   relationship different - same          26             paired t-test    -0.2872   0.6355               0.2685    -2.3044   0.0298
+nested_distance       far - near          26             paired t-test     0.0135   0.4087               0.9725     0.1678   0.8681
+nested_distance   unknown - near          26             paired t-test     0.0871   0.4718               0.2945     0.9414   0.3555
+nested_distance    unknown - far          26 Wilcoxon signed-rank test     0.0737   0.6002               0.0002   169.0000   0.8809
+      condition      near - same          26             paired t-test    -0.3207   0.6232               0.6884    -2.6240   0.0146
+      condition       far - same          26 Wilcoxon signed-rank test    -0.3072   0.7324               0.0075   108.0000   0.0890
+      condition   unknown - same          26             paired t-test    -0.2336   0.7326               0.6749    -1.6259   0.1165
+      condition       far - near          26             paired t-test     0.0135   0.4087               0.9725     0.1678   0.8681
+      condition   unknown - near          26             paired t-test     0.0871   0.4718               0.2945     0.9414   0.3555
+      condition    unknown - far          26 Wilcoxon signed-rank test     0.0737   0.6002               0.0002   169.0000   0.8809
+
+Varignon matched-trial counts
+-----------------------------
+raw_village_pair pair_condition estimate_type  n_trials
+              AB            far   cross_edges        19
+              AB            far    same_edges        18
+              AB           near   cross_edges        36
+              AB           near    same_edges        34
+              AC            far   cross_edges        34
+              AC            far    same_edges        34
+              AC           near   cross_edges        18
+              AC           near    same_edges        18
+              BC        unknown   cross_edges        54
+              BC        unknown    same_edges        52
+
+Varignon subject centers
+------------------------
+ SubNo raw_village_pair pair_condition estimate_type  n_matches  center_x_0to10  center_y_0to10  distance_to_true  distance_to_derived  true_center_x  true_center_y
+     2               AB            far   cross_edges          2          5.2082          7.2416            0.3147               0.3531         5.1120         6.9490
+     2               AB            far    same_edges          2          4.8226          7.0224            0.4008               0.2480         5.1120         6.9490
+     2               AC           near   cross_edges          2          4.4648          4.4120            0.1768               0.5164         4.4395         4.4395
+     2               AC           near    same_edges          2          5.1060          5.2498            1.0496               1.0306         4.4395         4.4395
+     2               BC        unknown   cross_edges          2          7.0013          4.7951            0.3585               0.6592         6.9490         5.1120
+     2               BC        unknown    same_edges          2          6.8544          5.0557            0.1504               0.1831         6.9490         5.1120
+     6               AB            far   cross_edges          2          4.7936          6.3761            0.6593               0.3601         5.1120         6.9490
+     6               AB            far    same_edges          2          5.2294          7.3853            0.4519               0.3914         5.1120         6.9490
+     6               AC           near   cross_edges          2          4.3578          4.3578            0.5986               0.6468         4.4395         4.4395
+     6               AC           near    same_edges          2          4.6560          4.1972            0.3860               0.4720         4.4395         4.4395
+     6               BC        unknown   cross_edges          2          7.3644          5.0653            0.4322               0.4794         6.9490         5.1120
+     6               BC        unknown    same_edges          2          7.1330          5.3670            0.3175               0.3697         6.9490         5.1120
+     8               AB            far   cross_edges          2          5.4011          6.8449            0.3078               0.7783         5.1120         6.9490
+     8               AB            far    same_edges          2          5.2406          7.5134            0.6873               1.2352         5.1120         6.9490
+     8               AC           near   cross_edges          2          4.4385          4.4118            0.0976               0.2836         4.4395         4.4395
+     8               AC           near    same_edges          2          4.5187          4.4920            0.0964               0.1427         4.4395         4.4395
+     8               BC        unknown   cross_edges          2          7.0053          5.2941            0.1913               0.2381         6.9490         5.1120
+     8               BC        unknown    same_edges          2          7.1123          5.2139            0.1938               0.1388         6.9490         5.1120
+     9               AB           near   cross_edges          2          5.5317          6.0864            0.9593               0.4908         5.1120         6.9490
+     9               AB           near    same_edges          2          5.0250          6.8250            0.2056               0.2856         5.1120         6.9490
+     9               AC            far   cross_edges          2          4.8999          5.0474            0.7629               0.6243         4.4395         4.4395
+     9               AC            far    same_edges          2          4.9500          5.0250            0.7769               0.7769         4.4395         4.4395
+     9               BC        unknown   cross_edges          3          6.5000          5.4500            0.6491               0.8793         6.9490         5.1120
+     9               BC        unknown    same_edges          2          6.9962          5.0198            0.4861               0.5663         6.9490         5.1120
+    10               AB            far   cross_edges          2          5.0134          7.0509            0.1468               0.7505         5.1120         6.9490
+    10               AB            far    same_edges          2          4.9866          6.8633            0.1787               2.0275         5.1120         6.9490
+    10               AC           near   cross_edges          2          4.4772          4.3968            0.1208               0.2030         4.4395         4.4395
+    10               AC           near    same_edges          2          4.4100          4.3675            0.0836               0.1945         4.4395         4.4395
+    10               BC        unknown   cross_edges          2          6.9151          5.4859            0.3756               0.1892         6.9490         5.1120
+    10               BC        unknown    same_edges          2          6.7828          5.3083            0.3334               0.2472         6.9490         5.1120
+    11               AB           near   cross_edges          2          5.0991          6.8208            0.2905               0.4859         5.1120         6.9490
+    11               AB           near    same_edges          2          5.0289          6.2499            1.1383               0.7030         5.1120         6.9490
+    11               AC            far   cross_edges          2          4.1987          4.1582            0.3707               0.7227         4.4395         4.4395
+    11               AC            far    same_edges          2          4.4499          4.3789            0.4422               0.4481         4.4395         4.4395
+    11               BC        unknown   cross_edges          3          5.2465          5.2665            1.7095               1.4903         6.9490         5.1120
+    11               BC        unknown    same_edges          2          6.8500          5.1750            0.3242               0.3533         6.9490         5.1120
+    12               AB            far   cross_edges          2          5.4633          6.9329            0.4234               0.4089         5.1120         6.9490
+    12               AB            far    same_edges          2          5.4633          6.5176            0.5907               0.5974         5.1120         6.9490
+    12               AC           near   cross_edges          2          4.3114          3.4185            1.0299               1.1486         4.4395         4.4395
+    12               AC           near    same_edges          2          3.4824          3.5463            1.3284               1.1187         4.4395         4.4395
+    12               BC        unknown   cross_edges          2          7.0354          4.8561            0.5998               0.8178         6.9490         5.1120
+    12               BC        unknown    same_edges          2          7.0927          5.3035            0.6553               0.3242         6.9490         5.1120
+    13               AB           near   cross_edges          2          4.6750          7.2500            0.6071               0.4994         5.1120         6.9490
+    13               AB           near    same_edges          2          5.3750          6.7250            0.3894               0.3693         5.1120         6.9490
+    13               AC            far   cross_edges          2          4.4000          4.1000            0.4665               0.5104         4.4395         4.4395
+    13               AC            far    same_edges          2          5.1000          5.0500            0.9161               0.8970         4.4395         4.4395
+    13               BC        unknown   cross_edges          2          6.9500          4.1237            0.9998               0.5983         6.9490         5.1120
+    13               BC        unknown    same_edges          2          7.2250          4.9500            0.3335               0.2036         6.9490         5.1120
+    14               AB            far   cross_edges          2          4.9840          7.4441            0.5879               0.7947         5.1120         6.9490
+    14               AB            far    same_edges          2          6.0383          7.0927            1.3646               1.3368         5.1120         6.9490
+    14               AC           near   cross_edges          2          5.3355          4.1534            1.0767               1.2548         4.4395         4.4395
+    14               AC           near    same_edges          2          6.2300          6.4537            2.8496               2.6545         4.4395         4.4395
+    14               BC        unknown   cross_edges          2          7.8275          6.3898            1.6439               1.5278         6.9490         5.1120
+    14               BC        unknown    same_edges          2          7.4760          6.2620            1.3099               1.7413         6.9490         5.1120
+    15               AB           near   cross_edges          2          3.4642          3.8680            3.6439               0.2745         5.1120         6.9490
+    15               AB           near    same_edges          2          5.1093          6.9923            0.0467               0.0541         5.1120         6.9490
+    15               AC            far   cross_edges          2          2.0889          1.8385            3.6382               1.3705         4.4395         4.4395
+    15               AC            far    same_edges          2          0.8625          0.8525            5.0710               0.1727         4.4395         4.4395
+    15               BC        unknown   cross_edges          2          1.3557          2.0413            6.3835               1.0369         6.9490         5.1120
+    15               BC        unknown    same_edges          2          1.2581          1.4796            6.7819               0.8188         6.9490         5.1120
+    16               AB            far   cross_edges          2          5.1757          7.1885            0.3775               0.0862         5.1120         6.9490
+    16               AB            far    same_edges          2          4.9521          7.0288            0.1793               0.2632         5.1120         6.9490
+    16               AC           near   cross_edges          2          5.4313          5.4313            1.9880               1.8012         4.4395         4.4395
+    16               AC           near    same_edges          2          4.1214          4.1214            0.4522               0.4926         4.4395         4.4395
+    16               BC        unknown   cross_edges          2          7.1885          5.0479            0.2639               0.7861         6.9490         5.1120
+    16               BC        unknown    same_edges          2          7.3482          5.5591            0.6461               0.4368         6.9490         5.1120
+    17               AB           near   cross_edges          2          6.5500          6.4250            1.5345               0.6031         5.1120         6.9490
+    17               AB           near    same_edges          2          6.5000          5.8000            2.3007               1.0634         5.1120         6.9490
+    17               AC            far   cross_edges          2          5.2250          4.2000            0.9885               1.0988         4.4395         4.4395
+    17               AC            far    same_edges          2          6.0000          5.3750            1.8338               1.4226         4.4395         4.4395
+    17               BC        unknown   cross_edges          2          6.0750          5.5500            1.0564               0.9141         6.9490         5.1120
+    17               BC        unknown    same_edges          2          6.6500          5.3000            0.7785               0.6479         6.9490         5.1120
+    18               AB            far   cross_edges          2          4.7604          6.9968            0.3874               0.2723         5.1120         6.9490
+    18               AB            far    same_edges          2          4.7284          6.5495            0.5852               0.6742         5.1120         6.9490
+    18               AC           near   cross_edges          2          4.4089          4.5048            0.0736               0.1822         4.4395         4.4395
+    18               AC           near    same_edges          2          4.3770          4.3770            0.1148               0.1917         4.4395         4.4395
+    18               BC        unknown   cross_edges          2          6.9329          3.7380            1.3991               0.9132         6.9490         5.1120
+    18               BC        unknown    same_edges          2          6.7093          4.9521            0.4274               0.4855         6.9490         5.1120
+    20               AB            far   cross_edges          3          4.5367          7.1565            0.5755               0.4298         5.1120         6.9490
+    20               AB            far    same_edges          2          4.9201          6.7093            0.3072               0.4973         5.1120         6.9490
+    20               AC           near   cross_edges          2          4.3666          4.3436            0.1207               0.1172         4.4395         4.4395
+    20               AC           near    same_edges          2          4.5503          4.2413            0.4810               0.5261         4.4395         4.4395
+    20               BC        unknown   cross_edges          2          7.3531          4.7787            0.5689               0.6838         6.9490         5.1120
+    20               BC        unknown    same_edges          2          6.5748          5.1441            0.5247               0.6965         6.9490         5.1120
+    21               AB           near   cross_edges          2          4.5920          6.7042            0.7819               0.4269         5.1120         6.9490
+    21               AB           near    same_edges          2          5.3746          7.1026            0.9218               1.2291         5.1120         6.9490
+    21               AC            far   cross_edges          2          4.4420          5.0987            0.7341               0.6747         4.4395         4.4395
+    21               AC            far    same_edges          2          4.2994          5.1636            0.7911               0.9626         4.4395         4.4395
+    21               BC        unknown   cross_edges          2          7.1055          4.5345            0.6047               0.8529         6.9490         5.1120
+    21               BC        unknown    same_edges          2          6.6128          4.9794            1.2844               1.3475         6.9490         5.1120
+    23               AB           near   cross_edges          2          4.4500          5.8750            1.3825               1.0765         5.1120         6.9490
+    23               AB           near    same_edges          2          5.0738          6.4458            1.0062               1.6223         5.1120         6.9490
+    23               AC            far   cross_edges          2          3.9750          4.2500            0.5838               1.0633         4.4395         4.4395
+    23               AC            far    same_edges          2          3.2783          4.3438            1.2074               1.4613         4.4395         4.4395
+    23               BC        unknown   cross_edges          2          5.1244          4.5763            2.0189               0.5942         6.9490         5.1120
+    23               BC        unknown    same_edges          2          7.4000          5.1000            0.5772               1.7454         6.9490         5.1120
+    29               AB           near   cross_edges          2          5.3351          7.2922            0.4104               0.1537         5.1120         6.9490
+    29               AB           near    same_edges          2          5.3619          7.1314            0.6115               0.6249         5.1120         6.9490
+    29               AC            far   cross_edges          2          4.2895          4.6381            0.2595               0.1868         4.4395         4.4395
+    29               AC            far    same_edges          2          4.7721          4.8794            0.5681               0.5074         4.4395         4.4395
+    29               BC        unknown   cross_edges          2          7.3458          5.0402            0.4837               0.4796         6.9490         5.1120
+    29               BC        unknown    same_edges          2          7.3995          5.2011            0.4991               0.4912         6.9490         5.1120
+    31               AB           near   cross_edges          2          5.5842          7.3390            0.7282               0.5621         5.1120         6.9490
+    31               AB           near    same_edges          2          5.0821          6.9927            0.1730               0.2544         5.1120         6.9490
+    31               AC            far   cross_edges          2          4.3109          3.8624            0.6220               0.6924         4.4395         4.4395
+    31               AC            far    same_edges          2          4.9660          5.0657            0.8728               0.7166         4.4395         4.4395
+    31               BC        unknown   cross_edges          2          7.2056          5.1394            0.2756               0.1090         6.9490         5.1120
+    31               BC        unknown    same_edges          2          7.1376          5.0851            0.4106               0.1802         6.9490         5.1120
+    35               AB           near   cross_edges          2          5.1475          7.0241            0.1699               0.6083         5.1120         6.9490
+    35               AB           near    same_edges          2          4.9598          6.3539            0.6171               0.3527         5.1120         6.9490
+    35               AC            far   cross_edges          2          3.9142          4.2091            0.6070               0.6571         4.4395         4.4395
+    35               AC            far    same_edges          2          3.8070          4.8525            1.1331               0.5869         4.4395         4.4395
+    35               BC        unknown   cross_edges          2          6.3807          5.2547            0.5925               0.5072         6.9490         5.1120
+    35               BC        unknown    same_edges          2          6.1929          5.1531            0.7635               0.6576         6.9490         5.1120
+    37               AB           near   cross_edges          2          4.9598          6.7292            0.2699               0.4081         5.1120         6.9490
+    37               AB           near    same_edges          2          4.8794          6.6488            0.4018               0.2245         5.1120         6.9490
+    37               AC            far   cross_edges          2          4.2077          4.3699            0.2722               0.1308         4.4395         4.4395
+    37               AC            far    same_edges          2          4.2895          3.8070            0.6840               0.4659         4.4395         4.4395
+    37               BC        unknown   cross_edges          2          6.9169          4.9062            0.2084               1.2447         6.9490         5.1120
+    37               BC        unknown    same_edges          2          6.9705          4.8525            0.3867               0.3689         6.9490         5.1120
+    39               AB           near   cross_edges          2          5.9358          7.2995            0.9012               0.6351         5.1120         6.9490
+    39               AB           near    same_edges          2          5.4017          6.9475            1.0802               0.8449         5.1120         6.9490
+    39               AC            far   cross_edges          2          4.4385          4.5455            0.3906               0.0819         4.4395         4.4395
+    39               AC            far    same_edges          2          4.2781          4.2513            0.3396               0.7240         4.4395         4.4395
+    39               BC        unknown   cross_edges          2          7.0053          5.2406            0.4470               0.6040         6.9490         5.1120
+    39               BC        unknown    same_edges          2          7.2727          5.0535            0.4515               0.3850         6.9490         5.1120
+    41               AB           near   cross_edges          2          4.9834          7.5617            0.6446               0.5644         5.1120         6.9490
+    41               AB           near    same_edges          2          5.2136          7.7259            0.7978               0.5944         5.1120         6.9490
+    41               AC            far   cross_edges          2          3.9707          4.1659            0.5484               0.5373         4.4395         4.4395
+    41               AC            far    same_edges          2          4.4652          4.5455            0.5667               0.5460         4.4395         4.4395
+    41               BC        unknown   cross_edges          2          6.8717          6.1230            1.1419               0.8882         6.9490         5.1120
+    41               BC        unknown    same_edges          2          7.2193          6.3369            1.2566               1.1418         6.9490         5.1120
+    43               AB           near   cross_edges          2          5.4278          7.4866            0.6237               0.3932         5.1120         6.9490
+    43               AB           near    same_edges          2          4.9643          7.0635            0.3220               0.1334         5.1120         6.9490
+    43               AC            far   cross_edges          2          4.6791          4.7326            0.4400               0.3333         4.4395         4.4395
+    43               AC            far    same_edges          2          4.5187          4.7326            0.3396               0.6165         4.4395         4.4395
+    43               BC        unknown   cross_edges          2          7.2193          5.7487            0.7081               0.6029         6.9490         5.1120
+    43               BC        unknown    same_edges          2          7.2727          5.4011            0.5142               1.7436         6.9490         5.1120
+    45               AB           near   cross_edges          3          5.0267          5.5080            1.4697               0.5863         5.1120         6.9490
+    45               AB           near    same_edges          2          5.1604          6.9251            0.6752               0.7031         5.1120         6.9490
+    45               AC            far   cross_edges          2          4.8975          4.8918            1.1879               0.8438         4.4395         4.4395
+    45               AC            far    same_edges          2          4.5536          4.5400            0.7927               0.5987         4.4395         4.4395
+    45               BC        unknown   cross_edges          2          5.8860          5.4249            1.1346               1.5207         6.9490         5.1120
+    45               BC        unknown    same_edges          2          7.2193          4.8128            0.5993               0.9342         6.9490         5.1120
+    47               AB           near   cross_edges          2          5.2547          6.5684            0.4478               0.8759         5.1120         6.9490
+    47               AB           near    same_edges          2          5.2547          6.9169            0.2161               0.2291         5.1120         6.9490
+    47               AC            far   cross_edges          2          4.6917          4.5040            0.2604               0.2062         4.4395         4.4395
+    47               AC            far    same_edges          2          4.6381          4.5040            0.2090               0.3644         4.4395         4.4395
+    47               BC        unknown   cross_edges          2          6.9169          5.0134            0.1340               0.7684         6.9490         5.1120
+    47               BC        unknown    same_edges          2          6.9705          5.5496            0.6194               0.7167         6.9490         5.1120
+    49               AB           near   cross_edges          3          4.8128          7.3262            0.5197               0.4081         5.1120         6.9490
+    49               AB           near    same_edges          2          4.9097          5.4991            1.4640               1.5066         5.1120         6.9490
+    49               AC            far   cross_edges          2          4.3048          4.3048            0.1991               0.1213         4.4395         4.4395
+    49               AC            far    same_edges          2          3.8503          3.9037            0.7968               1.4412         4.4395         4.4395
+    49               BC        unknown   cross_edges          2          7.3081          4.9273            0.4405               0.7438         6.9490         5.1120
+    49               BC        unknown    same_edges          2          6.6310          4.7059            0.5160               1.9740         6.9490         5.1120
+
+Varignon axis-wise paired tests
+-------------------------------
+              comparison  n_subjects                    method  mean_difference  sd_difference  normality_shapiro_p  statistic  p_value            scope   group           metric
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.1111         0.5173               0.0147   147.0000   0.6766 raw_village_pair      AB   center_x_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.0243         0.9041               0.0013   155.0000   0.6026 raw_village_pair      AB   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test           0.0789         0.8515               0.0000   173.0000   0.9602 raw_village_pair      AB distance_to_true
+cross_edges - same_edges          26             paired t-test          -0.0002         0.5734               0.2265    -0.0015   0.9988 raw_village_pair      AC   center_x_0to10
+cross_edges - same_edges          26             paired t-test          -0.1527         0.7280               0.0746    -1.0695   0.2951 raw_village_pair      AC   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.2526         0.6123               0.0233    80.0000   0.0140 raw_village_pair      AC distance_to_true
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.1663         0.6731               0.0007   153.0000   0.5677 raw_village_pair      BC   center_x_0to10
+cross_edges - same_edges          26             paired t-test          -0.0965         0.4346               0.4121    -1.1325   0.2682 raw_village_pair      BC   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test           0.1415         0.5126               0.0118   143.0000   0.4227 raw_village_pair      BC distance_to_true
+cross_edges - same_edges          26             paired t-test          -0.0457         0.4936               0.6279    -0.4726   0.6406   pair_condition     far   center_x_0to10
+cross_edges - same_edges          26             paired t-test          -0.0694         0.5732               0.0997    -0.6170   0.5428   pair_condition     far   center_y_0to10
+cross_edges - same_edges          26             paired t-test          -0.2298         0.4052               0.1140    -2.8916   0.0078   pair_condition     far distance_to_true
+cross_edges - same_edges          26             paired t-test          -0.0655         0.5991               0.4784    -0.5578   0.5819   pair_condition    near   center_x_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.1076         1.0132               0.0132   172.0000   0.9403   pair_condition    near   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test           0.0561         0.9749               0.0010   166.0000   0.8222   pair_condition    near distance_to_true
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.1663         0.6731               0.0007   153.0000   0.5677   pair_condition unknown   center_x_0to10
+cross_edges - same_edges          26             paired t-test          -0.0965         0.4346               0.4121    -1.1325   0.2682   pair_condition unknown   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test           0.1415         0.5126               0.0118   143.0000   0.4227   pair_condition unknown distance_to_true
+
+Varignon center-distance summary
+--------------------------------
+           scope   group  n_subjects  mean_center_distance  median_center_distance  sd_center_distance
+raw_village_pair      AB          26                0.7777                  0.6273              0.6852
+raw_village_pair      AC          26                0.6882                  0.5542              0.6248
+raw_village_pair      BC          26                0.6219                  0.4933              0.5274
+  pair_condition     far          26                0.6181                  0.5542              0.4267
+  pair_condition    near          26                0.8478                  0.6337              0.8091
+  pair_condition unknown          26                0.6219                  0.4933              0.5274
+
+Near-condition Varignon test
+----------------------------
+Question: do the two Varignon midpoint estimates differ in the recoded near condition?
+               method  n_subjects  observed_mean_norm  mean_dx  mean_dy  p_value  n_permutations
+sign-flip Monte Carlo          26              0.1260  -0.0655  -0.1076   0.6860           20000
+
+Near-condition supporting axis tests
+------------------------------------
+              comparison  n_subjects                    method  mean_difference  sd_difference  normality_shapiro_p  statistic  p_value           metric
+cross_edges - same_edges          26             paired t-test          -0.0655         0.5991               0.4784    -0.5578   0.5819   center_x_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test          -0.1076         1.0132               0.0132   172.0000   0.9403   center_y_0to10
+cross_edges - same_edges          26 Wilcoxon signed-rank test           0.0561         0.9749               0.0010   166.0000   0.8222 distance_to_true

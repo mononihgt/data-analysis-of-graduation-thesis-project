@@ -1,0 +1,2 @@
+method,n_subjects,observed_mean_norm,mean_dx,mean_dy,p_value,n_permutations
+sign-flip Monte Carlo,26,0.12597790146681478,-0.06554201810531748,-0.10758566596282576,0.6860156992150392,20000

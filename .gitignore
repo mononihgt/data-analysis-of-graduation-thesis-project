@@ -19,5 +19,4 @@ share/
 analysised_data/
 
 # Result files
-results/**
 !results/

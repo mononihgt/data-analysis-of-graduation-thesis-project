@@ -1,0 +1,47 @@
+proc6 / MR task 重建分析
+====================
+
+样本
+--
+纳入被试: 26
+legacy Xrange/Yrange + F*X/F*Y: 7
+WarmthRange/AbilityRange + F*Warmth/F*Ability: 19
+Completed-subject pool: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49]
+
+方法
+--
+实际矩形使用 WarmthRange/AbilityRange 或 legacy Xrange/Yrange；记录到的面孔百分比先按比例投射回共享 0–10 空间，再进行群体比较。
+矩形长宽比较：若被试内差值通过 Shapiro-Wilk 正态性检验，则用配对 t 检验；否则用 Wilcoxon 符号秩检验。
+每张脸的投射点 vs 真实点比较：若两个坐标差值都通过 Shapiro-Wilk，则用单样本 Hotelling T²；否则用基于 Hotelling 统计量的 sign-flip permutation test（20,000 次重采样）。
+
+矩形汇总
+----
+       metric  n_subjects     mean       sd      se   median      min      max
+ability_range          26 601.4231 205.3690 40.2762 556.0000 230.0000 957.0000
+ warmth_range          26 612.4615 187.6079 36.7929 581.0000 290.0000 920.0000
+ aspect_ratio          26   1.0540   0.2438  0.0478   1.0347   0.7097   2.1304
+
+矩形长宽比较
+------
+                  comparison  n_subjects                    method  mean_difference  sd_difference  normality_shapiro_p  statistic  p_value
+ability_range - warmth_range          26 Wilcoxon signed-rank test         -11.0385        88.1855               0.0103   109.5000   0.1534
+
+面孔投射汇总
+------
+ face  n_subjects  mean_projected_ability  sd_projected_ability  mean_projected_warmth  sd_projected_warmth  mean_delta_ability  sd_delta_ability  mean_delta_warmth  sd_delta_warmth  mean_euclidean_error  sd_euclidean_error  se_projected_ability  se_projected_warmth  se_delta_ability  se_delta_warmth  se_euclidean_error  true_ability  true_warmth
+    1          26                  2.6115                0.7988                 4.4485               1.0535              0.1955            0.7988            -0.3395           1.0535                0.9097              1.0232                0.1567               0.2066            0.1567           0.2066              0.2007        2.4160       4.7880
+    2          26                  3.3058                1.5140                 6.9069               1.5606              0.5168            1.5140            -0.8581           1.5606                1.4627              1.8831                0.2969               0.3061            0.2969           0.3061              0.3693        2.7890       7.7650
+    3          26                  6.5008                0.8683                 8.1600               1.0463              0.0748            0.8683            -0.3670           1.0463                1.0059              0.9707                0.1703               0.2052            0.1703           0.2052              0.1904        6.4260       8.5270
+    4          26                  8.5891                0.8851                 6.4528               1.0395             -0.2279            0.8851            -0.2632           1.0395                0.9089              1.0635                0.1736               0.2039            0.1736           0.2039              0.2086        8.8170       6.7160
+    5          26                  4.7828                0.8581                 2.3396               0.9783             -0.1112            0.8581             0.3196           0.9783                0.8717              1.0111                0.1683               0.1919            0.1683           0.1919              0.1983        4.8940       2.0200
+    6          26                  7.3978                1.3298                 3.3251               1.4213             -0.2612            1.3298             0.1401           1.4213                1.1510              1.5819                0.2608               0.2787            0.2608           0.2787              0.3102        7.6590       3.1850
+
+面孔投射与真实点比较
+----------
+ face                                            method  statistic  f_statistic  df1  df2  p_value  n_resamples  n_subjects  shapiro_ability_p  shapiro_warmth_p
+    1 sign-flip permutation test on Hotelling T-squared     2.8355          NaN    2  NaN   0.2834        20000          26             0.0079            0.0000
+    2 sign-flip permutation test on Hotelling T-squared     7.9696          NaN    2  NaN   0.0120        20000          26             0.0000            0.0000
+    3 sign-flip permutation test on Hotelling T-squared     4.6975          NaN    2  NaN   0.1147        20000          26             0.8521            0.0001
+    4 sign-flip permutation test on Hotelling T-squared     2.4362          NaN    2  NaN   0.3396        20000          26             0.0000            0.0075
+    5 sign-flip permutation test on Hotelling T-squared     2.9934          NaN    2  NaN   0.2895        20000          26             0.0000            0.0001
+    6 sign-flip permutation test on Hotelling T-squared     1.0549          NaN    2  NaN   0.6781        20000          26             0.0000            0.0000

@@ -1,0 +1,7 @@
+Proc3 DJ task statistical tests
+================================
+Generated: 2026-04-18T18:24:14
+
+type_1 vs chance (0.50): Wilcoxon signed-rank test (greater); n = 26; mean accuracy = 0.981; mean difference = 0.481; statistic = 351.000; p < 0.001.
+type_3 vs chance (0.50): Wilcoxon signed-rank test (greater); n = 26; mean accuracy = 0.969; mean difference = 0.469; statistic = 351.000; p < 0.001.
+type_1 vs type_3: Wilcoxon signed-rank test; n = 26; mean difference = 0.012; statistic = 24.000; p = 0.197.

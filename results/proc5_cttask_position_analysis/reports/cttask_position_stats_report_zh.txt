@@ -1,0 +1,37 @@
+CT任务位置分析（proc5）
+================================================================
+
+数据与预处理
+- 输入目录: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/data/CTtask_data
+- 纳入被试: 26 (2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49)
+- 纳入试次总数: 624
+- 基础排除: 1, 15, 17
+- 完成全部任务的被试: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49]
+- 每个被试 / session 都用原始文件里的 `true_leftBar` 与 `true_rightBar`，结合 canonical `FACE_TRUE_RAW` 反推 `squareSidePx`，再把 `leftBarLength` / `rightBarLength` 统一换算到共享 0–10 空间。
+- 推断得到的 `squareSidePx` 分布: {218: 1, 313: 5, 373: 6, 374: 7, 400: 7}
+- session 映射 RMSE 中位数: 0.000px；最大绝对误差中位数: 0.000px。
+
+按面孔的描述统计
+- 面孔1: 均值=(2.438, 4.810)，真值=(2.416, 4.788)，偏差=(0.022, 0.022)，被试均值欧氏偏差=0.382，单次试次平均欧氏偏差=0.427。
+- 面孔2: 均值=(2.912, 7.543)，真值=(2.789, 7.765)，偏差=(0.123, -0.222)，被试均值欧氏偏差=0.568，单次试次平均欧氏偏差=0.632。
+- 面孔3: 均值=(6.366, 8.436)，真值=(6.426, 8.527)，偏差=(-0.060, -0.091)，被试均值欧氏偏差=0.450，单次试次平均欧氏偏差=0.518。
+- 面孔4: 均值=(8.699, 6.469)，真值=(8.817, 6.716)，偏差=(-0.118, -0.247)，被试均值欧氏偏差=0.530，单次试次平均欧氏偏差=0.609。
+- 面孔5: 均值=(4.967, 2.116)，真值=(4.894, 2.020)，偏差=(0.073, 0.096)，被试均值欧氏偏差=0.268，单次试次平均欧氏偏差=0.307。
+- 面孔6: 均值=(7.529, 3.032)，真值=(7.659, 3.185)，偏差=(-0.130, -0.153)，被试均值欧氏偏差=0.429，单次试次平均欧氏偏差=0.489。
+
+按面孔的推断统计
+- 主检验规则：若能力与温暖两个维度的被试均值偏差都通过 Shapiro 正态性检验（p ≥ 0.05），则报告单样本 Hotelling T²；否则报告 sign-flip permutation 的 Hotelling-like T²。
+- 同时保留参数参考与稳健置换替代，便于核对结论是否稳健。
+- 面孔1: 主检验=sign-flip permutation on Hotelling-like T², T²=0.4752, p=0.8065, FDR-BH p=0.8065; 参数参考 Hotelling T²=0.4752, F=0.2281, p=0.7977; 置换替代 T²=0.4752, p=0.8065, n=20000; Shapiro p=(0.06581, 4.882e-06).
+- 面孔2: 主检验=sign-flip permutation on Hotelling-like T², T²=5.6621, p=0.0553, FDR-BH p=0.08295; 参数参考 Hotelling T²=5.6621, F=2.7178, p=0.08631; 置换替代 T²=5.6621, p=0.0553, n=20000; Shapiro p=(0.2237, 0.0164).
+- 面孔3: 主检验=sign-flip permutation on Hotelling-like T², T²=1.3583, p=0.5578, FDR-BH p=0.6694; 参数参考 Hotelling T²=1.3583, F=0.6520, p=0.53; 置换替代 T²=1.3583, p=0.5578, n=20000; Shapiro p=(0.02062, 7.559e-05).
+- 面孔4: 主检验=sign-flip permutation on Hotelling-like T², T²=9.5429, p=0.0038, FDR-BH p=0.009929; 参数参考 Hotelling T²=9.5429, F=4.5806, p=0.02065; 置换替代 T²=9.5429, p=0.0038, n=20000; Shapiro p=(1.788e-06, 0.00179).
+- 面孔5: 主检验=sign-flip permutation on Hotelling-like T², T²=14.9665, p=0.0014, FDR-BH p=0.0084; 参数参考 Hotelling T²=14.9665, F=7.1839, p=0.003589; 置换替代 T²=14.9665, p=0.0014, n=20000; Shapiro p=(0.02213, 0.9186).
+- 面孔6: 主检验=one-sample Hotelling T², F=6.6721, p=0.004964, FDR-BH p=0.009929; 参数参考 Hotelling T²=13.9002, F=6.6721, p=0.004964; 置换替代 T²=13.9002, p=0.00245, n=20000; Shapiro p=(0.3076, 0.09369).
+
+按主检验做 FDR-BH 校正后仍显著的面孔: 4, 5, 6.
+
+生成结果
+- 被试图: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/subjects
+- 群体图: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/group
+- CSV 表格: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc5_cttask_position_analysis/tables

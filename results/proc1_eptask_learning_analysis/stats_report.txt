@@ -1,0 +1,52 @@
+proc1 EP task learning/test analysis
+====================================
+
+Data integration rules
+- proc1 is interpreted as the explore / EP task.
+- Test files are deduplicated only across formats with the same stem; same-day `-1`, `-2`, ... files are appended.
+- Day 3 `trial_count` is divided by 3 because participants repeat the EP task three times on that day.
+- `squareSidePx` is inferred per SubNo × date from EP test `true_leftBar` / `true_rightBar` and canonical `FACE_TRUE_RAW`.
+- Learning `CoordinateData.leftBar/rightBar` pixels are converted with that SubNo × date `squareSidePx` into the shared 0-10 space.
+- EP analyses use shared completed-subject filters; MR-complete reference subjects: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49].
+
+Participants included: 26
+Included SubNo values: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49]
+MR-complete subjects with no EP rows after filtering: None
+
+Subject-date counts by inferred squareSidePx:
+- 218 px: 1 subject-date rows
+- 313 px: 13 subject-date rows
+- 373 px: 19 subject-date rows
+- 374 px: 24 subject-date rows
+- 400 px: 21 subject-date rows
+
+Scale inference quality:
+- All subject-date integer squareSidePx estimates reproduce recorded targets within 1 px.
+
+Explore time (s)
+----------------
+            n       mean     median        sd        se
+day_index                                              
+1          26  1289.4078  1134.6208  777.9790  152.5742
+2          26   426.9068   263.9976  440.7923   86.4465
+3          25   233.2878   153.7507  304.3820   60.8764
+
+Omnibus: Friedman test, n = 25, statistic = 22.3200, p = 1.42323e-05
+Pairwise comparisons:
+  Day 1 vs Day 2: paired t-test, n = 25, mean diff = 877.5802, statistic = 4.9745, p = 4.43467e-05, Shapiro p = 0.42364
+  Day 1 vs Day 3: paired t-test, n = 25, mean diff = 1009.7939, statistic = 6.1499, p = 2.35945e-06, Shapiro p = 0.0925672
+  Day 2 vs Day 3: Wilcoxon signed-rank test, n = 25, mean diff = 132.2137, statistic = 62.0000, p = 0.00557882, Shapiro p = 0.00975821
+
+Test trials
+-----------
+            n     mean   median       sd      se
+day_index                                       
+1          26  39.1538  27.5000  37.9976  7.4519
+2          26  16.8462  15.0000  10.9898  2.1553
+3          26   9.6410   7.8333   4.9197  0.9648
+
+Omnibus: Friedman test, n = 26, statistic = 26.0833, p = 2.16808e-06
+Pairwise comparisons:
+  Day 1 vs Day 2: Wilcoxon signed-rank test, n = 26, mean diff = 22.3077, statistic = 25.5000, p = 0.000617383, Shapiro p = 3.51098e-05
+  Day 1 vs Day 3: Wilcoxon signed-rank test, n = 26, mean diff = 29.5128, statistic = 1.0000, p = 1.38856e-05, Shapiro p = 3.20256e-06
+  Day 2 vs Day 3: Wilcoxon signed-rank test, n = 26, mean diff = 7.2051, statistic = 41.0000, p = 0.00316816, Shapiro p = 0.000315443

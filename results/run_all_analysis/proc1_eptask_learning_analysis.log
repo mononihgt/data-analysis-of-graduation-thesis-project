@@ -1,0 +1,10 @@
+$ /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/.venv/bin/python3 /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/scripts/proc1_eptask_learning_analysis.py
+
+INFO Loading EP learning data
+INFO Loading EP test trials
+INFO Inferring squareSidePx per subject-date from EP test targets
+INFO Exporting tables
+INFO Rendering subject figures
+INFO Rendering group figures
+INFO Writing statistics report
+INFO Done. Outputs written to /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc1_eptask_learning_analysis

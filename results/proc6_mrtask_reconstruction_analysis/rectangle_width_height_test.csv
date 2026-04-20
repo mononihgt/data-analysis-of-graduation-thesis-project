@@ -1,0 +1,2 @@
+comparison,n_subjects,method,mean_difference,sd_difference,normality_shapiro_p,statistic,p_value
+ability_range - warmth_range,26,Wilcoxon signed-rank test,-11.038461538461538,88.18547761133044,0.010314918449888487,109.5,0.15342062159519396

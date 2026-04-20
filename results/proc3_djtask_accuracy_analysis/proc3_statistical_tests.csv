@@ -1,0 +1,4 @@
+test_id,test_family,comparison,label,n_subjects,alternative,method,mean_accuracy,sd_accuracy,chance_level,mean_difference,normality_shapiro_p,statistic,p_value
+type_1_vs_chance,one_sample,type_1 vs chance (0.50),type_1,26,greater,Wilcoxon signed-rank test (greater),0.9807692307692307,0.03432032364918221,0.5,0.4807692307692308,2.836076735993566e-07,351.0,1.401226358287609e-06
+type_3_vs_chance,one_sample,type_3 vs chance (0.50),type_3,26,greater,Wilcoxon signed-rank test (greater),0.96875,0.04050462936504912,0.5,0.46875,9.343746753283238e-06,351.0,2.2698815626463864e-06
+type_1_vs_type_3,paired,type_1 - type_3,type_1_vs_type_3,26,two-sided,Wilcoxon signed-rank test,,,,0.01201923076923077,0.00123261627795182,24.0,0.19670560245894686

@@ -1,0 +1,54 @@
+Proc2 / SP task RT analysis / Proc2 / SP任务反应时分析
+====================================================
+
+Data selection / 数据选择
+------------------------
+- Proc mapping: proc2 = village classification / SP task.
+- SP RT analysis does not use coordinate scaling.
+- Participant inclusion used the shared `filter_completed_subjects()` completed-subject filter.
+- Completed-all-task subject pool from `completed_all_task_subject_ids()`: [2, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 23, 29, 31, 35, 37, 39, 41, 43, 45, 47, 49].
+- Kept one session per subject after deduplicating parallel exports (.csv/.xlsx/.mat).
+- When the same session had multiple exports, the script kept the most complete file and then preferred csv > xlsx > mat.
+- When a subject had multiple dated sessions, the most recent dated session was kept.
+
+Sample overview / 样本概览
+--------------------------
+- Included subjects: 26
+- Total analyzed trials: 408
+- Selected source files: 26
+- Trial-count range per subject: 3 to 36
+- Overall RT mean ± SD: 7.284 ± 7.126 s
+- Overall RT median [min, max]: 5.105 [1.497, 55.676] s
+- Mean RT at trial 1: 15.290 s
+- Mean RT at the last available trial (36): 3.839 s
+
+Trend summary / 趋势概览
+------------------------
+- Each subject was summarized by a simple linear slope from rt ~ trial_index.
+- Subjects with negative slopes: 24/26
+- Subjects with individually significant negative slopes (p < 0.05): 12/26
+- Mean slope: -0.884 s/trial
+- Median slope: -0.557 s/trial
+
+Inferential test / 推断检验
+--------------------------
+- Metric tested: subject slope of rt ~ trial_index
+- Shapiro-Wilk p-value: 0.0150
+- Method: Wilcoxon signed-rank test
+- n = 26, statistic = 4.0000, p = 0.000000
+- Mean tested value = -0.884, median tested value = -0.557
+
+Interpretation / 解释
+---------------------
+- Subject-level RT slopes were non-normal, so the report used a two-sided Wilcoxon signed-rank test against zero.
+- The negative median slope indicates that RT generally decreased over trials, consistent with practice-related speeding in this task.
+- Later trial positions contain fewer subjects because session lengths vary, so late-trial group summaries should be read with that changing denominator in mind.
+
+Outputs / 输出文件
+------------------
+- Selected-session table: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/selected_sessions.csv
+- Trial-level RT table: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/trial_level_rt.csv
+- Subject summary table: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/subject_rt_summary.csv
+- Trial-position summary table: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/trial_position_summary.csv
+- Subject trend table: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/subject_trend_summary.csv
+- Figures directory: /Users/maopeixuan/Documents/大四/毕设/dataAnalysis/results/proc2_sptask_rt_analysis/figures

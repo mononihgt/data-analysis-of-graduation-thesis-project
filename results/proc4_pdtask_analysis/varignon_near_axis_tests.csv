@@ -1,0 +1,4 @@
+comparison,n_subjects,method,mean_difference,sd_difference,normality_shapiro_p,statistic,p_value,metric
+cross_edges - same_edges,26,paired t-test,-0.06554201810531748,0.599148795669013,0.4783506517974731,-0.5577913728527081,0.5819478167630732,center_x_0to10
+cross_edges - same_edges,26,Wilcoxon signed-rank test,-0.10758566596282573,1.0132470754582215,0.013154861983001627,172.0,0.9402996003627777,center_y_0to10
+cross_edges - same_edges,26,Wilcoxon signed-rank test,0.05609230807701031,0.9749081538213554,0.0009936061179166037,166.0,0.8221841156482697,distance_to_true
